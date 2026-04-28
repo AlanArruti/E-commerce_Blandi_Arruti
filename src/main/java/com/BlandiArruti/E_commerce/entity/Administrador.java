@@ -16,8 +16,9 @@ import lombok.*;
 public class Administrador {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_administrador")
     private Long id;
-    @Column(name = "usernameAdm",nullable = false,length = 50)
+    @Column(name = "username",nullable = false, unique = true,length = 50)
     private String username;
     @Column(name = "contrasenia",nullable = false,length = 50)
     private String contrasenia;

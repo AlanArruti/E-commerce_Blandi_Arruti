@@ -15,7 +15,7 @@ import java.util.List;
 @ToString
 
 @Entity
-@Table(name = "Pedidos")
+@Table(name = "pedidos")
 public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

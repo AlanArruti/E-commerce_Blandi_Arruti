@@ -4,6 +4,7 @@ import com.BlandiArruti.E_commerce.entity.ubicacion.Direccion;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -11,19 +12,26 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
+@ToString(exclude = {"direcciones"})
 
 @Entity
 @Table (name = "clientes")
 public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
+    @Column(name = "nombre", nullable = false, length = 50)
     private String nombre;
+    @Column(name = "apellido", nullable = false, length = 50)
     private String apellido;
+    @Column(name = "dni", nullable = false, unique = true, length = 20)
     private String dni;
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
+    @Column(name = "contrasenia", nullable = false, length = 50)
     private String contrasenia;
-    private List<Direccion> direcciones;
-    private List<Pedido> pedidos;
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Direccion> direcciones = new ArrayList<>();
+    //private List<Pedido> pedidos;
 }

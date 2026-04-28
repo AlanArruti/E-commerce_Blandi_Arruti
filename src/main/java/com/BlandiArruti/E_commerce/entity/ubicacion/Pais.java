@@ -2,15 +2,18 @@ package com.BlandiArruti.E_commerce.entity.ubicacion;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
+@ToString(exclude = {"provincias"})
 
 @Entity
-@Table(name = "Paises")
+@Table(name = "paises")
 
 public class Pais {
     @Id
@@ -19,4 +22,8 @@ public class Pais {
     private Long id;
     @Column(name = "nombre_pais", nullable = false,length = 50)
     private String nombre;
+
+    @OneToMany(mappedBy = "pais", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Provincia> provincias = new ArrayList<>();
 }
