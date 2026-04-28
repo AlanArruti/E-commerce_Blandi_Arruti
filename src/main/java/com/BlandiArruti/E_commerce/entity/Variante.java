@@ -10,14 +10,23 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
+@ToString(exclude = {"producto", "atributos"})
 
 @Entity
-@Table(name = "Variantes")
+@Table(name = "variantes")
 public class Variante {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_variante")
     private Long id;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_producto", nullable = false)
+    private Producto producto;
+    @ElementCollection
+    @CollectionTable(name = "variante_atributos", joinColumns = @JoinColumn(name = "id_variante"))
+    @MapKeyColumn(name = "atributo_clave")
+    @Column(name = "atributo_valor")
     private Map<String, String> atributos;
+    @Column(name = "stok", nullable = false)
     private int stock;
 }

@@ -27,7 +27,6 @@ public class Direccion {
     private Integer numeroCalle;
 
     // -------- RELACIONES --------
-
     // Muchas direcciones pertenecen a UNA ciudad.
     // Esta clase es el LADO DUEÑO: acá vive la FK "id_ciudad".
     // LAZY para no traer toda la cadena Ciudad -> Provincia -> Pais sin querer.
@@ -35,8 +34,6 @@ public class Direccion {
     @JoinColumn(name = "id_ciudad", nullable = false)
     private Ciudad ciudad;
 
-    // Muchas direcciones pertenecen a UN cliente.
-    // También lado dueño. La FK "id_cliente" queda en la tabla "direcciones".
     // En Cliente, el inverso será: @OneToMany(mappedBy = "cliente")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_cliente", nullable = false)
