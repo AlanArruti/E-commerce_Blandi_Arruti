@@ -1,4 +1,4 @@
-package com.BlandiArruti.E_commerce.entity;
+package com.BlandiArruti.E_commerce.entity.ubicacion;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,12 +11,15 @@ import lombok.*;
 @ToString
 
 @Entity
-@Table(name = "Categorias")
-public class Categoria {
+@Table(name = "Provincias")
+
+public class Provincia {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_categoria")
+    @Column(name ="id_provincia")
     private Long id;
-    @Column(name = "nombre_categoria",nullable = false,length = 50)
+    @Column(name = "nombre_provincia",nullable = false,length = 50)
     private String nombre;
+    private Pais pais;
+
 }
