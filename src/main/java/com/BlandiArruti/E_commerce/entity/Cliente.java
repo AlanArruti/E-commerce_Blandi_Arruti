@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"direcciones"})
+@ToString(exclude = {"direcciones", "pedidos"})
 
 @Entity
 @Table (name = "clientes")
@@ -33,5 +33,7 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Direccion> direcciones = new ArrayList<>();
-    //private List<Pedido> pedidos;
+    @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Pedido> pedidos = new ArrayList<>();
 }
