@@ -27,6 +27,6 @@ public class Variante {
     @MapKeyColumn(name = "atributo_clave")
     @Column(name = "atributo_valor")
     private Map<String, String> atributos;
-    @Column(name = "stok", nullable = false)
-    private int stock;
+    @Column(name = "stock", nullable = false)
+    private Integer stock;
 }
