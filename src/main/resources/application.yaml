@@ -7,6 +7,7 @@ spring:
     username: postgres
     password: admin123
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,4 +15,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: America/Argentina/Buenos_Aires
+    open-in-view: false
+
+server:
+  port: 8080
