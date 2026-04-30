@@ -1,6 +1,5 @@
-package com.BlandiArruti.E_commerce.entity.ubicacion;
+package com.BlandiArruti.E_commerce.entity;
 
-import com.BlandiArruti.E_commerce.entity.Cliente;
 import jakarta.persistence.*;
 import lombok.*;
 

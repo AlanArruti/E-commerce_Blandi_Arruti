@@ -1,9 +1,7 @@
-package com.BlandiArruti.E_commerce.entity.ubicacion;
-import com.BlandiArruti.E_commerce.entity.Pedido;
+package com.BlandiArruti.E_commerce.entity;
 import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.CustomEntityDirtinessStrategy;
 
 import java.time.LocalDate;
 

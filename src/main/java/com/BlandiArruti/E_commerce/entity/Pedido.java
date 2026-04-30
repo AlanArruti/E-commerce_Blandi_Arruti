@@ -1,6 +1,5 @@
 package com.BlandiArruti.E_commerce.entity;
 
-import com.BlandiArruti.E_commerce.entity.ubicacion.Envio;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import jakarta.persistence.*;
 import lombok.*;
