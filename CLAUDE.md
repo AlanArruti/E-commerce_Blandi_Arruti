@@ -201,6 +201,7 @@ Este archivo es la fuente de verdad del proyecto. Claude Code debe mantenerlo ac
 - El estudiante prefiere `application.yaml` sobre `.properties`.
 - Comandos en **Windows / IntelliJ** (NO Linux).
 - Hablar en español rioplatense (vos, querés, dale).
+- Tipea con erratas frecuentes (xosa = cosa, xreame = creame). Interpretar.
 - Cuando expliques, usar tablas y listas. Evitar bloques de código gigantes.
 
 ---
