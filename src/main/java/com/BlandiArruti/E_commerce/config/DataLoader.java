@@ -1,11 +1,15 @@
 package com.BlandiArruti.E_commerce.config;
 
 import com.BlandiArruti.E_commerce.entity.*;
+import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
+import com.BlandiArruti.E_commerce.enums.EstadoPedido;
+import com.BlandiArruti.E_commerce.enums.TipoFactura;
 import com.BlandiArruti.E_commerce.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @Component
@@ -195,10 +199,130 @@ public class DataLoader implements CommandLineRunner {
                 .email("pedro@mail.com")
                 .contrasenia("password123")
                 .build());
-        
-        //------------CLIENTES------------//
 
+        //------------DIRECCIONES------------//
+        Ciudad marDelPlata = ciudadRepository.findByNombre("Mar del Plata")
+                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+        Ciudad laPlata = ciudadRepository.findByNombre("La Plata")
+                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+        Ciudad cordobaCapital = ciudadRepository.findByNombre("Córdoba Capital")
+                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
 
+        Direccion dirJuan = direccionRepository.save(Direccion.builder()
+                .nombreCalle("Av. Colón")
+                .numeroCalle(1234)
+                .ciudad(marDelPlata)
+                .cliente(juan)
+                .build());
 
+        Direccion dirMaria = direccionRepository.save(Direccion.builder()
+                .nombreCalle("Calle 13")
+                .numeroCalle(567)
+                .ciudad(laPlata)
+                .cliente(maria)
+                .build());
+
+        Direccion dirPedro = direccionRepository.save(Direccion.builder()
+                .nombreCalle("Bv. San Juan")
+                .numeroCalle(890)
+                .ciudad(cordobaCapital)
+                .cliente(pedro)
+                .build());
+
+//------------DIRECCIONES------------//
+
+//------------PEDIDOS------------//
+        Pedido pedido1 = pedidoRepository.save(Pedido.builder()
+                .cliente(juan)
+                .estadoPedido(EstadoPedido.CANCELADO)
+                .build());
+
+        Pedido pedido2 = pedidoRepository.save(Pedido.builder()
+                .cliente(maria)
+                .estadoPedido(EstadoPedido.EN_PREPARACION)
+                .build());
+
+        Pedido pedido3 = pedidoRepository.save(Pedido.builder()
+                .cliente(pedro)
+                .estadoPedido(EstadoPedido.ENTREGADO)
+                .build());
+
+//------------PEDIDOS------------//
+
+//------------ITEMS PEDIDO------------//
+
+        itemPedidoRepository.save(ItemPedido.builder()
+                .pedido(pedido1)
+                .variante(laptopPlata)
+                .producto(laptop)
+                .cantidad(1)
+                .precioProducto(laptop.getPrecio())
+                .build());
+
+        itemPedidoRepository.save(ItemPedido.builder()
+                .pedido(pedido2)
+                .variante(remeraM)
+                .producto(remera)
+                .cantidad(3)
+                .precioProducto(remera.getPrecio())
+                .build());
+
+        itemPedidoRepository.save(ItemPedido.builder()
+                .pedido(pedido3)
+                .variante(sillaRoja)
+                .producto(silla)
+                .cantidad(2)
+                .precioProducto(silla.getPrecio())
+                .build());
+
+//------------ITEMS PEDIDO------------//
+
+//------------ENVIOS------------//
+        envioRepository.save(Envio.builder()
+                .pedido(pedido1)
+                .direccion(dirJuan)
+                .estado(EstadoEnvio.DESPACHADO)
+                .fechaSalida(LocalDate.now().plusDays(1))
+                .fechaLlegada(LocalDate.now().plusDays(4))
+                .build());
+
+        envioRepository.save(Envio.builder()
+                .pedido(pedido2)
+                .direccion(dirMaria)
+                .estado(EstadoEnvio.EN_CAMINO)
+                .fechaSalida(LocalDate.now().minusDays(1))
+                .fechaLlegada(LocalDate.now().plusDays(2))
+                .build());
+
+        envioRepository.save(Envio.builder()
+                .pedido(pedido3)
+                .direccion(dirPedro)
+                .estado(EstadoEnvio.ENTREGADO)
+                .fechaSalida(LocalDate.now().minusDays(5))
+                .fechaLlegada(LocalDate.now().minusDays(2))
+                .build());
+
+//------------ENVIOS------------//
+
+//------------FACTURAS------------//
+        facturaRepository.save(Factura.builder()
+                .pedido(pedido1)
+                .tipoFactura(TipoFactura.B)
+                .precioTotal(laptop.getPrecio() * 1)
+                .build());
+
+        facturaRepository.save(Factura.builder()
+                .pedido(pedido2)
+                .tipoFactura(TipoFactura.B)
+                .precioTotal(remera.getPrecio() * 3)
+                .build());
+
+        facturaRepository.save(Factura.builder()
+                .pedido(pedido3)
+                .tipoFactura(TipoFactura.A)
+                .precioTotal(silla.getPrecio() * 2)
+                .build());
+
+//------------FACTURAS------------//
     }
 }
