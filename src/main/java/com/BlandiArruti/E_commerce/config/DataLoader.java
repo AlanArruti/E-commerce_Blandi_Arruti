@@ -130,7 +130,7 @@ public class DataLoader implements CommandLineRunner {
 
         //------------VARIANTES------------//
         // Laptop: 2 variantes (color)
-        varianteRepository.save(Variante.builder()
+        Variante laptopPlata = varianteRepository.save(Variante.builder()
                 .producto(laptop)
                 .atributos(Map.of("color", "Plata", "ram", "16GB"))
                 .stock(10)
@@ -142,7 +142,7 @@ public class DataLoader implements CommandLineRunner {
                 .build());
 
 // Remera: 4 variantes (talla x color)
-        varianteRepository.save(Variante.builder()
+        Variante remeraM = varianteRepository.save(Variante.builder()
                 .producto(remera)
                 .atributos(Map.of("talla", "M", "color", "Blanco"))
                 .stock(50)
@@ -159,7 +159,7 @@ public class DataLoader implements CommandLineRunner {
                 .build());
 
 // Silla: 1 variante
-        varianteRepository.save(Variante.builder()
+        Variante sillaRoja = varianteRepository.save(Variante.builder()
                 .producto(silla)
                 .atributos(Map.of("color", "Rojo"))
                 .stock(15)
