@@ -3,6 +3,8 @@ package com.BlandiArruti.E_commerce.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,6 +20,16 @@ public class Direccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_direccion") // HAY QUE DARLE NOMBRE AL ID
     private Long id; // Long porque el YAML usa format: int64
+
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
+    @PrePersist
+    private void generarUuid() {
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID().toString();
+        }
+    }
 
     @Column(name = "nombre_calle", nullable = false, length = 100) // NO PUEDE SER NULLO NI MAYOR A 100CRT
     private String nombreCalle;
