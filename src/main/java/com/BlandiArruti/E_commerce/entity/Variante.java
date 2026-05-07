@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,6 +20,17 @@ public class Variante {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_variante")
     private Long id;
+
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
+    @PrePersist
+    private void generarUuid() {
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID().toString();
+        }
+    }
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
