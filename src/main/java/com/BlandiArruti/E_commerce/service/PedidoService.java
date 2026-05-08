@@ -83,7 +83,7 @@ public class PedidoService {
         // 2. Construir pedido con sus items
         Pedido pedido = Pedido.builder()
                 .cliente(cliente)
-                .estadoPedido(EstadoPedido.EN_PREPARACION)
+                .estadoPedido(EstadoPedido.PENDIENTE_PAGO)
                 .build();
 
         for (int i = 0; i < request.items().size(); i++) {
@@ -111,8 +111,8 @@ public class PedidoService {
             throw PedidoNoModificableException.noCancelable(id, estado);
         }
 
-        // Si ya se descontó stock (pagado o despachado), devolverlo
-        if (estado == EstadoPedido.PAGADO || estado == EstadoPedido.DESPACHADO) {
+        // Si ya se descontó stock (en preparacion, pagado o despachado), devolverlo
+        if (estado == EstadoPedido.EN_PREPARACION || estado == EstadoPedido.PAGADO || estado == EstadoPedido.DESPACHADO) {
             for (ItemPedido item : pedido.getItems()) {
                 Variante variante = item.getVariante();
                 variante.setStock(variante.getStock() + item.getCantidad());
@@ -128,7 +128,7 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.pedido(id));
 
-        if (pedido.getEstadoPedido() != EstadoPedido.EN_PREPARACION) {
+        if (pedido.getEstadoPedido() != EstadoPedido.PENDIENTE_PAGO) {
             throw PedidoNoModificableException.porEstado(id, pedido.getEstadoPedido());
         }
 
@@ -168,6 +168,7 @@ public class PedidoService {
         EstadoPedido nuevo = request.estado();
 
         boolean valida = switch (actual) {
+            case PENDIENTE_PAGO -> nuevo == EstadoPedido.EN_PREPARACION || nuevo == EstadoPedido.CANCELADO;
             case EN_PREPARACION -> nuevo == EstadoPedido.PAGADO || nuevo == EstadoPedido.CANCELADO;
             case PAGADO         -> nuevo == EstadoPedido.DESPACHADO;
             case DESPACHADO     -> nuevo == EstadoPedido.ENTREGADO || nuevo == EstadoPedido.CANCELADO;
