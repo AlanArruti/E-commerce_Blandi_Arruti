@@ -2,6 +2,7 @@ package com.BlandiArruti.E_commerce.controller;
 
 import com.BlandiArruti.E_commerce.dto.request.CategoriaRequest;
 import com.BlandiArruti.E_commerce.dto.response.CategoriaResponse;
+import com.BlandiArruti.E_commerce.dto.response.EliminacionResponse;
 import com.BlandiArruti.E_commerce.service.CategoriaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +42,9 @@ public class CategoriaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        categoriaService.eliminar(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<EliminacionResponse> eliminar(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean confirmar) {
+        return ResponseEntity.ok(categoriaService.eliminar(id, confirmar));
     }
 }

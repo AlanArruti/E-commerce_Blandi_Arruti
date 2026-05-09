@@ -2,8 +2,9 @@ package com.BlandiArruti.E_commerce.service;
 
 import com.BlandiArruti.E_commerce.dto.request.CategoriaRequest;
 import com.BlandiArruti.E_commerce.dto.response.CategoriaResponse;
+import com.BlandiArruti.E_commerce.dto.response.EliminacionResponse;
 import com.BlandiArruti.E_commerce.entity.Categoria;
-import com.BlandiArruti.E_commerce.exception.ConflictoException;
+import com.BlandiArruti.E_commerce.entity.Producto;
 import com.BlandiArruti.E_commerce.exception.DuplicadoException;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import com.BlandiArruti.E_commerce.mapper.CategoriaMapper;
@@ -61,13 +62,50 @@ public class CategoriaService {
         return categoriaMapper.toResponse(categoriaRepository.save(categoria));
     }
 
-    public void eliminar(Long id) {
-        if (!categoriaRepository.existsById(id)) {
-            throw EntidadNoEncontradaException.categoria(id);
+    public EliminacionResponse eliminar(Long id, boolean confirmar) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> EntidadNoEncontradaException.categoria(id));
+
+        List<Producto> productosAfectados = productoRepository.findByCategoriaId(id);
+
+        List<String> nombresAfectados = productosAfectados.stream()
+                .map(p -> "id " + p.getId() + " — " + p.getNombre())
+                .toList();
+
+        // Sin confirmar: solo avisa, no borra nada
+        if (!confirmar) {
+            if (productosAfectados.isEmpty()) {
+                return new EliminacionResponse(
+                        "¿Está seguro que desea eliminar la categoría '" + categoria.getNombre() + "'? " +
+                        "No tiene productos asociados. Para confirmar, reenvíe la solicitud con ?confirmar=true.",
+                        List.of()
+                );
+            }
+            return new EliminacionResponse(
+                    "¿Está seguro que desea eliminar la categoría '" + categoria.getNombre() + "'? " +
+                    "Los siguientes " + productosAfectados.size() + " producto(s) quedarán sin categoría asignada. " +
+                    "Para confirmar, reenvíe la solicitud con ?confirmar=true.",
+                    nombresAfectados
+            );
         }
-        if (!productoRepository.findByCategoriaId(id).isEmpty()) {
-            throw ConflictoException.categoriaConProductos(id);
+
+        // Confirmar=true: desvincular productos y eliminar
+        for (Producto producto : productosAfectados) {
+            producto.setCategoria(null);
+            productoRepository.save(producto);
         }
-        categoriaRepository.deleteById(id);
+        categoriaRepository.delete(categoria);
+
+        if (productosAfectados.isEmpty()) {
+            return new EliminacionResponse(
+                    "Categoría '" + categoria.getNombre() + "' eliminada correctamente.",
+                    List.of()
+            );
+        }
+        return new EliminacionResponse(
+                "Categoría '" + categoria.getNombre() + "' eliminada. " +
+                productosAfectados.size() + " producto(s) quedaron sin categoría asignada.",
+                nombresAfectados
+        );
     }
 }
