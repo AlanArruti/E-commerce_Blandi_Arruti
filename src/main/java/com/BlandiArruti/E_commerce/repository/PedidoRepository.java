@@ -5,8 +5,11 @@ import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
+
+    Optional<Pedido> findByUuid(String uuid);
 
     List<Pedido> findByClienteId(Long idCliente);
 

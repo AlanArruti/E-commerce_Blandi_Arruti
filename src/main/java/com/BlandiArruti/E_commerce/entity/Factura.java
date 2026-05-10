@@ -3,6 +3,8 @@ import com.BlandiArruti.E_commerce.enums.TipoFactura;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,6 +19,15 @@ public class Factura {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_factura")
     private Long id;
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
+    @PrePersist
+    private void generarUuid() {
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID().toString();
+        }
+    }
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_pedido", nullable = false, unique = true)
     private Pedido pedido;
