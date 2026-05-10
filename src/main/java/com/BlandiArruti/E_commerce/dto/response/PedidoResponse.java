@@ -5,7 +5,7 @@ import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import java.util.List;
 
 public record PedidoResponse(
-        Long idPedido,
+        String uuidPedido,
         ClienteResponse cliente,
         List<ItemPedidoResponse> items,
         EstadoPedido estado,
