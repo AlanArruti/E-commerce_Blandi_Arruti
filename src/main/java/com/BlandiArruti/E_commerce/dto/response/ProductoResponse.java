@@ -3,7 +3,7 @@ package com.BlandiArruti.E_commerce.dto.response;
 import java.util.List;
 
 public record ProductoResponse(
-        Long idProducto,
+        String uuidProducto,
         String nombre,
         String descripcion,
         Double precioBase,

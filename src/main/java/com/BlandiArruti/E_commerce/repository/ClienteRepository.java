@@ -7,7 +7,8 @@ import java.util.Optional;
 
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
-    // Spring deduce la query a partir del nombre del metodo:
+    Optional<Cliente> findByUuid(String uuid);
+
     Optional<Cliente> findByEmail(String email);
 
     boolean existsByEmail(String email);
