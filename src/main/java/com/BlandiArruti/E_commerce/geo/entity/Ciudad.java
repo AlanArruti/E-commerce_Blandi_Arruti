@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -22,6 +23,16 @@ public class Ciudad {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_ciudad")
     private Long id;
+
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
+    @PrePersist
+    private void generarUuid() {
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID().toString();
+        }
+    }
 
     @Column(name = "nombre_ciudad", nullable = false, length = 100)
     private String nombre;

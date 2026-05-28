@@ -42,7 +42,7 @@ public class Producto {
     @Column(name = "precio", nullable = false)
     private Double precio;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria")
     private Categoria categoria;
 
