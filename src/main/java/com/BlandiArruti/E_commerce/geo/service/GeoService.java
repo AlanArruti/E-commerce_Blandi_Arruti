@@ -32,8 +32,7 @@ public class GeoService {
         if (!paisRepository.existsById(idPais)) {
             throw new EntidadNoEncontradaException("País con id " + idPais + " no encontrado.");
         }
-        return provinciaRepository.findAll().stream()
-                .filter(p -> p.getPais().getId().equals(idPais))
+        return provinciaRepository.findByPaisId(idPais).stream()
                 .map(geoMapper::toResponse)
                 .toList();
     }

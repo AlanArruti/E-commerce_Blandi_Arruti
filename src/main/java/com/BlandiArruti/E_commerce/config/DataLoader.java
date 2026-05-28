@@ -29,6 +29,7 @@ import com.BlandiArruti.E_commerce.producto.entity.Producto;
 import com.BlandiArruti.E_commerce.producto.entity.Variante;
 import com.BlandiArruti.E_commerce.producto.repository.ProductoRepository;
 import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
+import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -198,19 +199,19 @@ public class DataLoader implements CommandLineRunner {
 
         //------------DIRECCIONES------------//
         Ciudad marDelPlata = ciudadRepository.findByNombre("Mar del Plata")
-                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'Mar del Plata' no encontrada."));
         Ciudad laPlata = ciudadRepository.findByNombre("La Plata")
-                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'La Plata' no encontrada."));
         Ciudad cordobaCapital = ciudadRepository.findByNombre("Córdoba Capital")
-                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'Córdoba Capital' no encontrada."));
 
-        Direccion dirJuan = direccionRepository.save(Direccion.builder()
+        direccionRepository.save(Direccion.builder()
                 .nombreCalle("Av. Colón")
                 .numeroCalle(1234)
                 .ciudad(marDelPlata)
                 .cliente(juan)
                 .build());
-        Direccion dirMaria = direccionRepository.save(Direccion.builder()
+        direccionRepository.save(Direccion.builder()
                 .nombreCalle("Calle 13")
                 .numeroCalle(567)
                 .ciudad(laPlata)
@@ -226,11 +227,11 @@ public class DataLoader implements CommandLineRunner {
         //------------PEDIDOS------------//
         Pedido pedido1 = pedidoRepository.save(Pedido.builder()
                 .cliente(juan)
-                .estadoPedido(EstadoPedido.CANCELADO)
+                .estadoPedido(EstadoPedido.PENDIENTE_PAGO)
                 .build());
         Pedido pedido2 = pedidoRepository.save(Pedido.builder()
                 .cliente(maria)
-                .estadoPedido(EstadoPedido.EN_PREPARACION)
+                .estadoPedido(EstadoPedido.PAGADO)
                 .build());
         Pedido pedido3 = pedidoRepository.save(Pedido.builder()
                 .cliente(pedro)
@@ -261,20 +262,9 @@ public class DataLoader implements CommandLineRunner {
                 .build());
 
         //------------ENVIOS------------//
-        envioRepository.save(Envio.builder()
-                .pedido(pedido1)
-                .direccion(dirJuan)
-                .estado(EstadoEnvio.DESPACHADO)
-                .fechaSalida(LocalDate.now().plusDays(1))
-                .fechaLlegada(LocalDate.now().plusDays(4))
-                .build());
-        envioRepository.save(Envio.builder()
-                .pedido(pedido2)
-                .direccion(dirMaria)
-                .estado(EstadoEnvio.EN_CAMINO)
-                .fechaSalida(LocalDate.now().minusDays(1))
-                .fechaLlegada(LocalDate.now().plusDays(2))
-                .build());
+        // pedido1 (PENDIENTE_PAGO): sin envio
+        // pedido2 (PAGADO): sin envio aun
+        // pedido3 (ENTREGADO): tiene envio entregado
         envioRepository.save(Envio.builder()
                 .pedido(pedido3)
                 .direccion(dirPedro)
@@ -284,11 +274,9 @@ public class DataLoader implements CommandLineRunner {
                 .build());
 
         //------------FACTURAS------------//
-        facturaRepository.save(Factura.builder()
-                .pedido(pedido1)
-                .tipoFactura(TipoFactura.B)
-                .precioTotal(laptop.getPrecio() * 1)
-                .build());
+        // pedido1 (PENDIENTE_PAGO): sin factura
+        // pedido2 (PAGADO): factura generada al pagar
+        // pedido3 (ENTREGADO): factura generada al pagar
         facturaRepository.save(Factura.builder()
                 .pedido(pedido2)
                 .tipoFactura(TipoFactura.B)
