@@ -1,5 +1,6 @@
-package com.BlandiArruti.E_commerce.entity;
+package com.BlandiArruti.E_commerce.factura.entity;
 import com.BlandiArruti.E_commerce.enums.TipoFactura;
+import com.BlandiArruti.E_commerce.pedido.entity.Pedido;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,5 +1,7 @@
-package com.BlandiArruti.E_commerce.entity;
+package com.BlandiArruti.E_commerce.envio.entity;
+import com.BlandiArruti.E_commerce.cliente.entity.Direccion;
 import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
+import com.BlandiArruti.E_commerce.pedido.entity.Pedido;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,3 +46,4 @@ public class Envio {
     private LocalDate fechaLlegada;
 
 }
+
