@@ -1,10 +1,35 @@
 package com.BlandiArruti.E_commerce.config;
 
-import com.BlandiArruti.E_commerce.entity.*;
+import com.BlandiArruti.E_commerce.administrador.entity.Administrador;
+import com.BlandiArruti.E_commerce.administrador.repository.AdministradorRepository;
+import com.BlandiArruti.E_commerce.categoria.entity.Categoria;
+import com.BlandiArruti.E_commerce.categoria.repository.CategoriaRepository;
+import com.BlandiArruti.E_commerce.cliente.entity.Cliente;
+import com.BlandiArruti.E_commerce.cliente.entity.Direccion;
+import com.BlandiArruti.E_commerce.cliente.repository.ClienteRepository;
+import com.BlandiArruti.E_commerce.cliente.repository.DireccionRepository;
+import com.BlandiArruti.E_commerce.envio.entity.Envio;
+import com.BlandiArruti.E_commerce.envio.repository.EnvioRepository;
 import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.enums.TipoFactura;
-import com.BlandiArruti.E_commerce.repository.*;
+import com.BlandiArruti.E_commerce.factura.entity.Factura;
+import com.BlandiArruti.E_commerce.factura.repository.FacturaRepository;
+import com.BlandiArruti.E_commerce.geo.entity.Ciudad;
+import com.BlandiArruti.E_commerce.geo.entity.Pais;
+import com.BlandiArruti.E_commerce.geo.entity.Provincia;
+import com.BlandiArruti.E_commerce.geo.repository.CiudadRepository;
+import com.BlandiArruti.E_commerce.geo.repository.PaisRepository;
+import com.BlandiArruti.E_commerce.geo.repository.ProvinciaRepository;
+import com.BlandiArruti.E_commerce.pedido.entity.ItemPedido;
+import com.BlandiArruti.E_commerce.pedido.entity.Pedido;
+import com.BlandiArruti.E_commerce.pedido.repository.ItemPedidoRepository;
+import com.BlandiArruti.E_commerce.pedido.repository.PedidoRepository;
+import com.BlandiArruti.E_commerce.producto.entity.Producto;
+import com.BlandiArruti.E_commerce.producto.entity.Variante;
+import com.BlandiArruti.E_commerce.producto.repository.ProductoRepository;
+import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
+import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -30,50 +55,40 @@ public class DataLoader implements CommandLineRunner {
     private final CategoriaRepository categoriaRepository;
     private final EnvioRepository envioRepository;
 
-
-
     @Override
     public void run(String... args) {
 
-        //------------GEO------------//
         if (paisRepository.count() > 0) {
             return;
         }
+
+        //------------GEO------------//
         Pais argentina = paisRepository.save(
                 Pais.builder().nombre("Argentina").build()
         );
-
         Pais uruguay = paisRepository.save(
                 Pais.builder().nombre("Uruguay").build()
         );
         Provincia bsAs = provinciaRepository.save(
                 Provincia.builder().nombre("Buenos Aires").pais(argentina).build()
         );
-
         Provincia cordoba = provinciaRepository.save(
                 Provincia.builder().nombre("Córdoba").pais(argentina).build()
         );
-
         Provincia montevideo = provinciaRepository.save(
                 Provincia.builder().nombre("Montevideo").pais(uruguay).build()
         );
-
         Provincia canelones = provinciaRepository.save(
                 Provincia.builder().nombre("Canelones").pais(uruguay).build()
         );
         ciudadRepository.save(Ciudad.builder().nombre("Mar del Plata").provincia(bsAs).build());
         ciudadRepository.save(Ciudad.builder().nombre("La Plata").provincia(bsAs).build());
-
         ciudadRepository.save(Ciudad.builder().nombre("Córdoba Capital").provincia(cordoba).build());
         ciudadRepository.save(Ciudad.builder().nombre("Villa Carlos Paz").provincia(cordoba).build());
-
         ciudadRepository.save(Ciudad.builder().nombre("Montevideo").provincia(montevideo).build());
         ciudadRepository.save(Ciudad.builder().nombre("Pocitos").provincia(montevideo).build());
-
         ciudadRepository.save(Ciudad.builder().nombre("Las Piedras").provincia(canelones).build());
         ciudadRepository.save(Ciudad.builder().nombre("Pando").provincia(canelones).build());
-
-        //------------GEO------------//
 
         //------------CATEGORIA------------//
         Categoria electronica = categoriaRepository.save(
@@ -89,8 +104,6 @@ public class DataLoader implements CommandLineRunner {
                 Categoria.builder().nombre("Deportes").build()
         );
 
-        //------------CATEGORIA------------//
-
         //------------PRODUCTO------------//
         Producto laptop = productoRepository.save(Producto.builder()
                 .nombre("Laptop")
@@ -98,38 +111,32 @@ public class DataLoader implements CommandLineRunner {
                 .precio(999.99)
                 .categoria(electronica)
                 .build());
-
         Producto smartphone = productoRepository.save(Producto.builder()
                 .nombre("Smartphone")
                 .descripcion("Smartphone Android con pantalla OLED de 6.5 pulgadas.")
                 .precio(699.99)
                 .categoria(electronica)
                 .build());
-
         Producto remera = productoRepository.save(Producto.builder()
                 .nombre("Remera básica")
                 .descripcion("Remera de algodón 100% color sólido.")
                 .precio(4999.99)
                 .categoria(indumentaria)
                 .build());
-
         Producto silla = productoRepository.save(Producto.builder()
                 .nombre("Silla gamer")
                 .descripcion("Silla ergonómica con apoyabrazos ajustables.")
                 .precio(199.99)
                 .categoria(hogar)
                 .build());
-
         Producto pelota = productoRepository.save(Producto.builder()
                 .nombre("Pelota fútbol")
                 .descripcion("Pelota oficial talle 5.")
                 .precio(89.99)
                 .categoria(deportes)
                 .build());
-        //------------PRODUCTO------------//
 
         //------------VARIANTES------------//
-        // Laptop: 2 variantes (color)
         Variante laptopPlata = varianteRepository.save(Variante.builder()
                 .producto(laptop)
                 .atributos(Map.of("color", "Plata", "ram", "16GB"))
@@ -140,8 +147,6 @@ public class DataLoader implements CommandLineRunner {
                 .atributos(Map.of("color", "Negro", "ram", "32GB"))
                 .stock(5)
                 .build());
-
-// Remera: 4 variantes (talla x color)
         Variante remeraM = varianteRepository.save(Variante.builder()
                 .producto(remera)
                 .atributos(Map.of("talla", "M", "color", "Blanco"))
@@ -150,30 +155,24 @@ public class DataLoader implements CommandLineRunner {
         varianteRepository.save(Variante.builder()
                 .producto(remera)
                 .atributos(Map.of("talla", "M", "color", "Negro"))
-                .stock(0)  // ← stock 0 para probar "sin stock"
+                .stock(0)
                 .build());
         varianteRepository.save(Variante.builder()
                 .producto(remera)
                 .atributos(Map.of("talla", "L", "color", "Blanco"))
-                .stock(2)  // ← stock bajo para probar "stock insuficiente"
+                .stock(2)
                 .build());
-
-// Silla: 1 variante
         Variante sillaRoja = varianteRepository.save(Variante.builder()
                 .producto(silla)
                 .atributos(Map.of("color", "Rojo"))
                 .stock(15)
                 .build());
 
-        //------------VARIANTES------------//
-
         //------------ADMIN------------//
         administradorRepository.save(Administrador.builder()
                 .username("admin")
                 .contrasenia("admin123")
                 .build());
-
-        //------------ADMIN------------//
 
         //------------CLIENTES------------//
         Cliente juan = clienteRepository.save(Cliente.builder()
@@ -183,7 +182,6 @@ public class DataLoader implements CommandLineRunner {
                 .email("juan@mail.com")
                 .contrasenia("password123")
                 .build());
-
         Cliente maria = clienteRepository.save(Cliente.builder()
                 .nombre("María")
                 .apellido("González")
@@ -191,7 +189,6 @@ public class DataLoader implements CommandLineRunner {
                 .email("maria@mail.com")
                 .contrasenia("password123")
                 .build());
-
         Cliente pedro = clienteRepository.save(Cliente.builder()
                 .nombre("Pedro")
                 .apellido("López")
@@ -202,26 +199,24 @@ public class DataLoader implements CommandLineRunner {
 
         //------------DIRECCIONES------------//
         Ciudad marDelPlata = ciudadRepository.findByNombre("Mar del Plata")
-                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'Mar del Plata' no encontrada."));
         Ciudad laPlata = ciudadRepository.findByNombre("La Plata")
-                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'La Plata' no encontrada."));
         Ciudad cordobaCapital = ciudadRepository.findByNombre("Córdoba Capital")
-                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'Córdoba Capital' no encontrada."));
 
-        Direccion dirJuan = direccionRepository.save(Direccion.builder()
+        direccionRepository.save(Direccion.builder()
                 .nombreCalle("Av. Colón")
                 .numeroCalle(1234)
                 .ciudad(marDelPlata)
                 .cliente(juan)
                 .build());
-
-        Direccion dirMaria = direccionRepository.save(Direccion.builder()
+        direccionRepository.save(Direccion.builder()
                 .nombreCalle("Calle 13")
                 .numeroCalle(567)
                 .ciudad(laPlata)
                 .cliente(maria)
                 .build());
-
         Direccion dirPedro = direccionRepository.save(Direccion.builder()
                 .nombreCalle("Bv. San Juan")
                 .numeroCalle(890)
@@ -229,28 +224,21 @@ public class DataLoader implements CommandLineRunner {
                 .cliente(pedro)
                 .build());
 
-//------------DIRECCIONES------------//
-
-//------------PEDIDOS------------//
+        //------------PEDIDOS------------//
         Pedido pedido1 = pedidoRepository.save(Pedido.builder()
                 .cliente(juan)
-                .estadoPedido(EstadoPedido.CANCELADO)
+                .estadoPedido(EstadoPedido.PENDIENTE_PAGO)
                 .build());
-
         Pedido pedido2 = pedidoRepository.save(Pedido.builder()
                 .cliente(maria)
-                .estadoPedido(EstadoPedido.EN_PREPARACION)
+                .estadoPedido(EstadoPedido.PAGADO)
                 .build());
-
         Pedido pedido3 = pedidoRepository.save(Pedido.builder()
                 .cliente(pedro)
                 .estadoPedido(EstadoPedido.ENTREGADO)
                 .build());
 
-//------------PEDIDOS------------//
-
-//------------ITEMS PEDIDO------------//
-
+        //------------ITEMS PEDIDO------------//
         itemPedidoRepository.save(ItemPedido.builder()
                 .pedido(pedido1)
                 .variante(laptopPlata)
@@ -258,7 +246,6 @@ public class DataLoader implements CommandLineRunner {
                 .cantidad(1)
                 .precioProducto(laptop.getPrecio())
                 .build());
-
         itemPedidoRepository.save(ItemPedido.builder()
                 .pedido(pedido2)
                 .variante(remeraM)
@@ -266,7 +253,6 @@ public class DataLoader implements CommandLineRunner {
                 .cantidad(3)
                 .precioProducto(remera.getPrecio())
                 .build());
-
         itemPedidoRepository.save(ItemPedido.builder()
                 .pedido(pedido3)
                 .variante(sillaRoja)
@@ -275,25 +261,10 @@ public class DataLoader implements CommandLineRunner {
                 .precioProducto(silla.getPrecio())
                 .build());
 
-//------------ITEMS PEDIDO------------//
-
-//------------ENVIOS------------//
-        envioRepository.save(Envio.builder()
-                .pedido(pedido1)
-                .direccion(dirJuan)
-                .estado(EstadoEnvio.DESPACHADO)
-                .fechaSalida(LocalDate.now().plusDays(1))
-                .fechaLlegada(LocalDate.now().plusDays(4))
-                .build());
-
-        envioRepository.save(Envio.builder()
-                .pedido(pedido2)
-                .direccion(dirMaria)
-                .estado(EstadoEnvio.EN_CAMINO)
-                .fechaSalida(LocalDate.now().minusDays(1))
-                .fechaLlegada(LocalDate.now().plusDays(2))
-                .build());
-
+        //------------ENVIOS------------//
+        // pedido1 (PENDIENTE_PAGO): sin envio
+        // pedido2 (PAGADO): sin envio aun
+        // pedido3 (ENTREGADO): tiene envio entregado
         envioRepository.save(Envio.builder()
                 .pedido(pedido3)
                 .direccion(dirPedro)
@@ -302,27 +273,19 @@ public class DataLoader implements CommandLineRunner {
                 .fechaLlegada(LocalDate.now().minusDays(2))
                 .build());
 
-//------------ENVIOS------------//
-
-//------------FACTURAS------------//
-        facturaRepository.save(Factura.builder()
-                .pedido(pedido1)
-                .tipoFactura(TipoFactura.B)
-                .precioTotal(laptop.getPrecio() * 1)
-                .build());
-
+        //------------FACTURAS------------//
+        // pedido1 (PENDIENTE_PAGO): sin factura
+        // pedido2 (PAGADO): factura generada al pagar
+        // pedido3 (ENTREGADO): factura generada al pagar
         facturaRepository.save(Factura.builder()
                 .pedido(pedido2)
                 .tipoFactura(TipoFactura.B)
                 .precioTotal(remera.getPrecio() * 3)
                 .build());
-
         facturaRepository.save(Factura.builder()
                 .pedido(pedido3)
                 .tipoFactura(TipoFactura.A)
                 .precioTotal(silla.getPrecio() * 2)
                 .build());
-
-//------------FACTURAS------------//
     }
 }
