@@ -1,5 +1,6 @@
-package com.BlandiArruti.E_commerce.entity;
+package com.BlandiArruti.E_commerce.cliente.entity;
 
+import com.BlandiArruti.E_commerce.geo.entity.Ciudad;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -50,3 +51,4 @@ public class Direccion {
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 }
+

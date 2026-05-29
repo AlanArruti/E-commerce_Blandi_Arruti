@@ -1,5 +1,6 @@
-package com.BlandiArruti.E_commerce.entity;
+package com.BlandiArruti.E_commerce.producto.entity;
 
+import com.BlandiArruti.E_commerce.categoria.entity.Categoria;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,3 +45,4 @@ public class Producto {
     @Builder.Default
     private List<Variante> variantes = new ArrayList<>();
 }
+

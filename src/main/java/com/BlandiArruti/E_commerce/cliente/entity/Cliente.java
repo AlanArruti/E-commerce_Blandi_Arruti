@@ -1,5 +1,6 @@
-package com.BlandiArruti.E_commerce.entity;
+package com.BlandiArruti.E_commerce.cliente.entity;
 
+import com.BlandiArruti.E_commerce.pedido.entity.Pedido;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -46,3 +47,4 @@ public class Cliente {
     @Builder.Default
     private List<Pedido> pedidos = new ArrayList<>();
 }
+
