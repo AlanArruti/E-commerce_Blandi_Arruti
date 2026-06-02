@@ -1,6 +1,6 @@
 package com.BlandiArruti.E_commerce.enums;
 
-public enum Roles {
+public enum Rol {
     ADMIN,
     CLIENTE,
 }
