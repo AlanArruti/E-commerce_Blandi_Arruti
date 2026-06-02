@@ -1,4 +1,4 @@
-package com.BlandiArruti.E_commerce.factura.dto.response;
+package com.BlandiArruti.E_commerce.factura.dto.request;
 
 import com.BlandiArruti.E_commerce.enums.TipoFactura;
 
