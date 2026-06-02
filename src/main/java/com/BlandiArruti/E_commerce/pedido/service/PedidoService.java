@@ -14,7 +14,7 @@ import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.exception.*;
 import com.BlandiArruti.E_commerce.factura.entity.Factura;
-import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
+import com.BlandiArruti.E_commerce.factura.dto.request.FacturaResponse;
 import com.BlandiArruti.E_commerce.factura.mapper.FacturaMapper;
 import com.BlandiArruti.E_commerce.factura.repository.FacturaRepository;
 import com.BlandiArruti.E_commerce.pedido.dto.request.EstadoPedidoRequest;

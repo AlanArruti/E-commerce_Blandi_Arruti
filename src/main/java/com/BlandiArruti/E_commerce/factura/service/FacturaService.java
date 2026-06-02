@@ -1,7 +1,7 @@
 package com.BlandiArruti.E_commerce.factura.service;
 
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
-import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
+import com.BlandiArruti.E_commerce.factura.dto.request.FacturaResponse;
 import com.BlandiArruti.E_commerce.factura.mapper.FacturaMapper;
 import com.BlandiArruti.E_commerce.factura.repository.FacturaRepository;
 import lombok.RequiredArgsConstructor;
