@@ -6,6 +6,10 @@ public class CredencialesInvalidasException extends EcommerceException {
         super("Credenciales inválidas. Verifique su email y contraseña.");
     }
 
+    public CredencialesInvalidasException(String mensaje) {
+        super(mensaje);
+    }
+
     public static CredencialesInvalidasException deCliente() {
         return new CredencialesInvalidasException();
     }

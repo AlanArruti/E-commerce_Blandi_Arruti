@@ -21,3 +21,9 @@ spring:
 
 server:
   port: 8080
+
+jwt:
+  # Clave secreta — mínimo 32 caracteres para HMAC-SHA256. Cambiar en producción.
+  secret: ***ROTADO***
+  # Expiración del token en milisegundos (86400000 = 24 horas)
+  expiration: 86400000

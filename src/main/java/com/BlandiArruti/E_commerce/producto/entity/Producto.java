@@ -38,6 +38,10 @@ public class Producto {
     private String descripcion;
     @Column(name = "precio", nullable = false)
     private Double precio;
+    @Column(name = "activo", nullable = false)
+    @Builder.Default
+    private boolean activo = true;
+
     @ManyToOne
     @JoinColumn(name = "id_categoria")
     private Categoria categoria;

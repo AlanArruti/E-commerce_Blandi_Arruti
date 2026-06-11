@@ -8,6 +8,7 @@ import com.BlandiArruti.E_commerce.administrador.repository.AdministradorReposit
 import com.BlandiArruti.E_commerce.exception.DuplicadoException;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class AdministradorService {
 
     private final AdministradorRepository administradorRepository;
     private final AdministradorMapper administradorMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<AdministradorResponse> listarTodos() {
@@ -41,6 +43,7 @@ public class AdministradorService {
             throw DuplicadoException.username(request.username());
         }
         Administrador admin = administradorMapper.toEntity(request);
+        admin.setContrasenia(passwordEncoder.encode(request.contrasenia()));
         return administradorMapper.toResponse(administradorRepository.save(admin));
     }
 

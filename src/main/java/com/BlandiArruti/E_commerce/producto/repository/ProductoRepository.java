@@ -10,7 +10,13 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Optional<Producto> findByUuid(String uuid);
 
+    Optional<Producto> findByIdAndActivoTrue(Long id);
+
+    List<Producto> findAllByActivoTrue();
+
     List<Producto> findByCategoriaId(Long idCategoria);
 
-    List<Producto> findByNombreContainingIgnoreCase(String texto);
+    List<Producto> findByActivoTrueAndCategoriaId(Long idCategoria);
+
+    List<Producto> findByActivoTrueAndNombreContainingIgnoreCase(String texto);
 }

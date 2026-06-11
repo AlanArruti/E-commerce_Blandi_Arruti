@@ -33,6 +33,6 @@ public class Administrador {
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(name = "contrasenia", nullable = false, length = 50)
+    @Column(name = "contrasenia", nullable = false, length = 255)
     private String contrasenia;
 }

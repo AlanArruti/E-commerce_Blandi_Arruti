@@ -38,11 +38,11 @@ public class ProductoService {
         List<Producto> productos;
 
         if (search != null && !search.isBlank()) {
-            productos = productoRepository.findByNombreContainingIgnoreCase(search.trim());
+            productos = productoRepository.findByActivoTrueAndNombreContainingIgnoreCase(search.trim());
         } else if (categoriaId != null) {
-            productos = productoRepository.findByCategoriaId(categoriaId);
+            productos = productoRepository.findByActivoTrueAndCategoriaId(categoriaId);
         } else {
-            productos = productoRepository.findAll();
+            productos = productoRepository.findAllByActivoTrue();
         }
 
         return productos.stream()
@@ -55,7 +55,7 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public ProductoResponse buscarPorId(Long id) {
         return productoMapper.toResponse(
-                productoRepository.findById(id)
+                productoRepository.findByIdAndActivoTrue(id)
                         .orElseThrow(() -> EntidadNoEncontradaException.producto(id))
         );
     }
@@ -70,7 +70,7 @@ public class ProductoService {
     }
 
     public ProductoResponse actualizar(Long id, ProductoRequest request) {
-        Producto producto = productoRepository.findById(id)
+        Producto producto = productoRepository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.producto(id));
 
         Categoria categoria = categoriaRepository.findById(request.categoriaId())
@@ -84,24 +84,24 @@ public class ProductoService {
     }
 
     public void eliminar(Long id) {
-        if (!productoRepository.existsById(id)) {
-            throw EntidadNoEncontradaException.producto(id);
-        }
-        productoRepository.deleteById(id);
+        Producto producto = productoRepository.findByIdAndActivoTrue(id)
+                .orElseThrow(() -> EntidadNoEncontradaException.producto(id));
+        producto.setActivo(false);
+        productoRepository.save(producto);
     }
 
     @Transactional(readOnly = true)
     public List<VarianteResponse> listarVariantes(Long idProducto) {
-        if (!productoRepository.existsById(idProducto)) {
+        if (productoRepository.findByIdAndActivoTrue(idProducto).isEmpty()) {
             throw EntidadNoEncontradaException.producto(idProducto);
         }
-        return varianteRepository.findByProductoId(idProducto).stream()
+        return varianteRepository.findByProductoIdAndActivoTrue(idProducto).stream()
                 .map(varianteMapper::toResponse)
                 .toList();
     }
 
     public VarianteResponse agregarVariante(Long idProducto, VarianteRequest request) {
-        Producto producto = productoRepository.findById(idProducto)
+        Producto producto = productoRepository.findByIdAndActivoTrue(idProducto)
                 .orElseThrow(() -> EntidadNoEncontradaException.producto(idProducto));
 
         Variante variante = varianteMapper.toEntity(request);
@@ -110,10 +110,10 @@ public class ProductoService {
     }
 
     public VarianteResponse actualizarVariante(Long idProducto, Long idVariante, VarianteRequest request) {
-        if (!productoRepository.existsById(idProducto)) {
+        if (productoRepository.findByIdAndActivoTrue(idProducto).isEmpty()) {
             throw EntidadNoEncontradaException.producto(idProducto);
         }
-        Variante variante = varianteRepository.findById(idVariante)
+        Variante variante = varianteRepository.findByIdAndActivoTrue(idVariante)
                 .orElseThrow(() -> EntidadNoEncontradaException.variante(idVariante));
 
         variante.setAtributos(request.atributos());
@@ -122,19 +122,20 @@ public class ProductoService {
     }
 
     public void eliminarVariante(Long idProducto, Long idVariante) {
-        if (!productoRepository.existsById(idProducto)) {
+        if (productoRepository.findByIdAndActivoTrue(idProducto).isEmpty()) {
             throw EntidadNoEncontradaException.producto(idProducto);
         }
-        Variante variante = varianteRepository.findById(idVariante)
+        Variante variante = varianteRepository.findByIdAndActivoTrue(idVariante)
                 .orElseThrow(() -> EntidadNoEncontradaException.variante(idVariante));
-        varianteRepository.delete(variante);
+        variante.setActivo(false);
+        varianteRepository.save(variante);
     }
 
     public VarianteResponse ajustarStock(Long idProducto, Long idVariante, StockRequest request) {
-        if (!productoRepository.existsById(idProducto)) {
+        if (productoRepository.findByIdAndActivoTrue(idProducto).isEmpty()) {
             throw EntidadNoEncontradaException.producto(idProducto);
         }
-        Variante variante = varianteRepository.findById(idVariante)
+        Variante variante = varianteRepository.findByIdAndActivoTrue(idVariante)
                 .orElseThrow(() -> EntidadNoEncontradaException.variante(idVariante));
 
         if (request.operacion() == OperacionStock.AGREGAR) {
