@@ -32,6 +32,7 @@ import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ public class DataLoader implements CommandLineRunner {
 
     private final AdministradorRepository administradorRepository;
     private final ClienteRepository clienteRepository;
+    private final PasswordEncoder passwordEncoder;
     private final PaisRepository paisRepository;
     private final ProvinciaRepository provinciaRepository;
     private final CiudadRepository ciudadRepository;
@@ -171,30 +173,32 @@ public class DataLoader implements CommandLineRunner {
         //------------ADMIN------------//
         administradorRepository.save(Administrador.builder()
                 .username("admin")
-                .contrasenia("admin123")
+                .contrasenia(passwordEncoder.encode("admin123"))
                 .build());
 
         //------------CLIENTES------------//
+        String hashPassword = passwordEncoder.encode("password123");
+
         Cliente juan = clienteRepository.save(Cliente.builder()
                 .nombre("Juan")
                 .apellido("Pérez")
                 .dni("30111222")
                 .email("juan@mail.com")
-                .contrasenia("password123")
+                .contrasenia(hashPassword)
                 .build());
         Cliente maria = clienteRepository.save(Cliente.builder()
                 .nombre("María")
                 .apellido("González")
                 .dni("28999888")
                 .email("maria@mail.com")
-                .contrasenia("password123")
+                .contrasenia(hashPassword)
                 .build());
         Cliente pedro = clienteRepository.save(Cliente.builder()
                 .nombre("Pedro")
                 .apellido("López")
                 .dni("35444555")
                 .email("pedro@mail.com")
-                .contrasenia("password123")
+                .contrasenia(hashPassword)
                 .build());
 
         //------------DIRECCIONES------------//

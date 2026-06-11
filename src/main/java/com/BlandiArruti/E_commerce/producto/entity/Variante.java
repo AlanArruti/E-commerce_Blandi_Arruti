@@ -43,4 +43,8 @@ public class Variante {
 
     @Column(name = "stock", nullable = false)
     private Integer stock;
+
+    @Column(name = "activo", nullable = false)
+    @Builder.Default
+    private boolean activo = true;
 }

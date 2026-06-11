@@ -38,8 +38,12 @@ public class Cliente {
     private String dni;
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
-    @Column(name = "contrasenia", nullable = false, length = 50)
+    @Column(name = "contrasenia", nullable = false, length = 255)
     private String contrasenia;
+
+    @Column(name = "activo", nullable = false)
+    @Builder.Default
+    private boolean activo = true;
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Direccion> direcciones = new ArrayList<>();

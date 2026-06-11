@@ -19,6 +19,7 @@ import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
 import com.BlandiArruti.E_commerce.pedido.mapper.PedidoMapper;
 import com.BlandiArruti.E_commerce.pedido.repository.PedidoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +37,11 @@ public class ClienteService {
     private final ClienteMapper clienteMapper;
     private final DireccionMapper direccionMapper;
     private final PedidoMapper pedidoMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<ClienteResponse> listarTodos() {
-        return clienteRepository.findAll().stream()
+        return clienteRepository.findAllByActivoTrue().stream()
                 .map(clienteMapper::toResponse)
                 .toList();
     }
@@ -47,7 +49,7 @@ public class ClienteService {
     @Transactional(readOnly = true)
     public ClienteResponse buscarPorId(Long id) {
         return clienteMapper.toResponse(
-                clienteRepository.findById(id)
+                clienteRepository.findByIdAndActivoTrue(id)
                         .orElseThrow(() -> EntidadNoEncontradaException.cliente(id))
         );
     }
@@ -60,11 +62,12 @@ public class ClienteService {
             throw DuplicadoException.dni(request.dni());
         }
         Cliente cliente = clienteMapper.toEntity(request);
+        cliente.setContrasenia(passwordEncoder.encode(request.contrasenia()));
         return clienteMapper.toResponse(clienteRepository.save(cliente));
     }
 
     public ClienteResponse actualizar(Long id, ClienteRequest request) {
-        Cliente cliente = clienteRepository.findById(id)
+        Cliente cliente = clienteRepository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.cliente(id));
 
         if (!cliente.getEmail().equals(request.email())
@@ -75,14 +78,15 @@ public class ClienteService {
         cliente.setNombre(request.nombre());
         cliente.setApellido(request.apellido());
         cliente.setEmail(request.email());
-        cliente.setContrasenia(request.contrasenia());
+        cliente.setContrasenia(passwordEncoder.encode(request.contrasenia()));
         return clienteMapper.toResponse(clienteRepository.save(cliente));
     }
 
     public void eliminar(Long id) {
-        Cliente cliente = clienteRepository.findById(id)
+        Cliente cliente = clienteRepository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.cliente(id));
-        clienteRepository.delete(cliente);
+        cliente.setActivo(false);
+        clienteRepository.save(cliente);
     }
 
     @Transactional(readOnly = true)
@@ -95,7 +99,7 @@ public class ClienteService {
     }
 
     public DireccionResponse agregarDireccion(Long idCliente, DireccionRequest request) {
-        Cliente cliente = clienteRepository.findById(idCliente)
+        Cliente cliente = clienteRepository.findByIdAndActivoTrue(idCliente)
                 .orElseThrow(() -> EntidadNoEncontradaException.cliente(idCliente));
         Ciudad ciudad = ciudadRepository.findById(request.idCiudad())
                 .orElseThrow(() -> new EntidadNoEncontradaException(
@@ -112,7 +116,7 @@ public class ClienteService {
     }
 
     public void eliminarDireccion(Long idCliente, Long idDireccion) {
-        if (!clienteRepository.existsById(idCliente)) {
+        if (clienteRepository.findByIdAndActivoTrue(idCliente).isEmpty()) {
             throw EntidadNoEncontradaException.cliente(idCliente);
         }
         Direccion direccion = direccionRepository.findById(idDireccion)
@@ -122,7 +126,7 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public List<PedidoResponse> historialPedidos(Long idCliente, EstadoPedido estado) {
-        if (!clienteRepository.existsById(idCliente)) {
+        if (clienteRepository.findByIdAndActivoTrue(idCliente).isEmpty()) {
             throw EntidadNoEncontradaException.cliente(idCliente);
         }
         var pedidos = estado != null

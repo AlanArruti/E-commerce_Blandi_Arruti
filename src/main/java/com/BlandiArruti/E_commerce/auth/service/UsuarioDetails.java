@@ -15,13 +15,14 @@ public class UsuarioDetails implements UserDetails {
     private final String username;
     private final String password;
     private final Rol rol;
+    private final boolean activo;
 
-    // constructor private para forzar a usar los factory methods, no se puede instanciar directo
-    private UsuarioDetails(Long id, String username, String password, Rol rol) {
+    private UsuarioDetails(Long id, String username, String password, Rol rol, boolean activo) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.rol = rol;
+        this.activo = activo;
     }
 
     public static UsuarioDetails fromCliente(Cliente cliente) {
@@ -29,7 +30,8 @@ public class UsuarioDetails implements UserDetails {
                 cliente.getId(),
                 cliente.getEmail(),
                 cliente.getContrasenia(),
-                Rol.CLIENTE
+                Rol.CLIENTE,
+                cliente.isActivo()
         );
     }
 
@@ -38,7 +40,8 @@ public class UsuarioDetails implements UserDetails {
                 admin.getId(),
                 admin.getUsername(),
                 admin.getContrasenia(),
-                Rol.ADMIN
+                Rol.ADMIN,
+                true
         );
     }
 
@@ -58,7 +61,6 @@ public class UsuarioDetails implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_" + rol.name()));
     }
 
-    //sin logica de bloqueo/expiración por ahora
     @Override
     public boolean isAccountNonExpired() { return true; }
     @Override
@@ -66,5 +68,5 @@ public class UsuarioDetails implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() { return true; }
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return activo; }
 }

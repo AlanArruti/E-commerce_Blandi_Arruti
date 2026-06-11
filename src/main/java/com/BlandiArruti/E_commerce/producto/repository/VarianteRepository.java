@@ -10,5 +10,7 @@ public interface VarianteRepository extends JpaRepository<Variante, Long> {
 
     Optional<Variante> findByUuid(String uuid);
 
-    List<Variante> findByProductoId(Long idProducto);
+    Optional<Variante> findByIdAndActivoTrue(Long id);
+
+    List<Variante> findByProductoIdAndActivoTrue(Long idProducto);
 }
