@@ -1,5 +1,6 @@
 package com.BlandiArruti.E_commerce.cliente.entity;
 
+import com.BlandiArruti.E_commerce.carrito.entity.Carrito;
 import com.BlandiArruti.E_commerce.pedido.entity.Pedido;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"direcciones", "pedidos"})
+@ToString(exclude = {"direcciones", "pedidos", "carrito"})
 
 @Entity
 @Table (name = "clientes")
@@ -50,5 +51,8 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Pedido> pedidos = new ArrayList<>();
+
+    @OneToOne(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Carrito carrito;
 }
 

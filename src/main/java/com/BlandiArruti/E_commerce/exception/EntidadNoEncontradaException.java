@@ -54,4 +54,14 @@ public class EntidadNoEncontradaException extends EcommerceException {
     public static EntidadNoEncontradaException administrador(Long id) {
         return new EntidadNoEncontradaException("Administrador con id " + id + " no encontrado.");
     }
+
+    // -- Carritos --
+    public static EntidadNoEncontradaException carrito(Long id) {
+        return new EntidadNoEncontradaException("Carrito con id " + id + " no encontrado.");
+    }
+
+    // -- Items de carrito --
+    public static EntidadNoEncontradaException itemCarrito(Long id) {
+        return new EntidadNoEncontradaException("Ítem de carrito con id " + id + " no encontrado.");
+    }
 }
