@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class ClienteController {
 
     private final ClienteService clienteService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<ClienteResponse>> listarTodos() {
         return ResponseEntity.ok(clienteService.listarTodos());
@@ -32,6 +34,7 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.buscarPorId(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ClienteResponse> crear(@Valid @RequestBody ClienteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.crear(request));

@@ -1,5 +1,6 @@
 package com.BlandiArruti.E_commerce.pedido.service;
 
+import com.BlandiArruti.E_commerce.auth.service.UsuarioDetails;
 import com.BlandiArruti.E_commerce.cliente.entity.Cliente;
 import com.BlandiArruti.E_commerce.cliente.entity.Direccion;
 import com.BlandiArruti.E_commerce.cliente.repository.ClienteRepository;
@@ -12,6 +13,7 @@ import com.BlandiArruti.E_commerce.envio.mapper.EnvioMapper;
 import com.BlandiArruti.E_commerce.envio.repository.EnvioRepository;
 import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
+import com.BlandiArruti.E_commerce.enums.Rol;
 import com.BlandiArruti.E_commerce.exception.*;
 import com.BlandiArruti.E_commerce.factura.entity.Factura;
 import com.BlandiArruti.E_commerce.factura.dto.request.FacturaResponse;
@@ -31,6 +33,8 @@ import com.BlandiArruti.E_commerce.producto.entity.Variante;
 import com.BlandiArruti.E_commerce.producto.repository.ProductoRepository;
 import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,8 +57,26 @@ public class PedidoService {
     private final FacturaMapper facturaMapper;
     private final EnvioMapper envioMapper;
 
+    private UsuarioDetails getPrincipal() {
+        return (UsuarioDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    private void verificarPropietario(Pedido pedido) {
+        UsuarioDetails principal = getPrincipal();
+        if (principal.getRol() == Rol.CLIENTE && !principal.getId().equals(pedido.getCliente().getId())) {
+            throw new AccessDeniedException("No tenés permiso para acceder a este pedido.");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<PedidoResponse> listarTodos(EstadoPedido estado, Long clienteId) {
+        UsuarioDetails principal = getPrincipal();
+
+        // CLIENTE solo puede ver sus propios pedidos — ignora cualquier clienteId que venga en el param
+        if (principal.getRol() == Rol.CLIENTE) {
+            clienteId = principal.getId();
+        }
+
         if (estado != null && clienteId != null) {
             return pedidoRepository.findByClienteIdAndEstadoPedido(clienteId, estado)
                     .stream().map(pedidoMapper::toResponse).toList();
@@ -70,15 +92,21 @@ public class PedidoService {
 
     @Transactional(readOnly = true)
     public PedidoResponse buscarPorId(Long id) {
-        return pedidoMapper.toResponse(
-                pedidoRepository.findById(id)
-                        .orElseThrow(() -> EntidadNoEncontradaException.pedido(id))
-        );
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> EntidadNoEncontradaException.pedido(id));
+        verificarPropietario(pedido);
+        return pedidoMapper.toResponse(pedido);
     }
 
-    public PedidoResponse crear(PedidoRequest request) {
-        Cliente cliente = clienteRepository.findById(request.idCliente())
-                .orElseThrow(() -> EntidadNoEncontradaException.cliente(request.idCliente()));
+    public PedidoResponse crear(PedidoRequest request, UsuarioDetails principal) {
+        Long idCliente = principal.getRol() == Rol.CLIENTE
+                ? principal.getId()
+                : request.idCliente();
+        if (idCliente == null) {
+            throw new EcommerceException("El administrador debe especificar el idCliente en el body.");
+        }
+        Cliente cliente = clienteRepository.findByIdAndActivoTrue(idCliente)
+                .orElseThrow(() -> EntidadNoEncontradaException.cliente(idCliente));
 
         List<Producto> productos = new ArrayList<>();
         List<Variante> variantes = new ArrayList<>();
@@ -120,6 +148,7 @@ public class PedidoService {
     public void cancelar(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.pedido(id));
+        verificarPropietario(pedido);
 
         EstadoPedido estado = pedido.getEstadoPedido();
 
@@ -142,6 +171,7 @@ public class PedidoService {
     public PedidoResponse pagar(Long id, PagoRequest request) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.pedido(id));
+        verificarPropietario(pedido);
 
         if (pedido.getEstadoPedido() != EstadoPedido.PENDIENTE_PAGO) {
             throw PedidoNoModificableException.porEstado(id, pedido.getEstadoPedido());
@@ -201,6 +231,7 @@ public class PedidoService {
     public FacturaResponse obtenerFactura(Long idPedido) {
         Pedido pedido = pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> EntidadNoEncontradaException.pedido(idPedido));
+        verificarPropietario(pedido);
         if (pedido.getFactura() == null) {
             throw new ConflictoException("El pedido con id " + idPedido + " aún no tiene factura.");
         }
@@ -209,6 +240,9 @@ public class PedidoService {
 
     @Transactional(readOnly = true)
     public EnvioResponse obtenerEnvio(Long idPedido) {
+        Pedido pedido = pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> EntidadNoEncontradaException.pedido(idPedido));
+        verificarPropietario(pedido);
         Envio envio = envioRepository.findByPedidoId(idPedido)
                 .orElseThrow(() -> EntidadNoEncontradaException.envio(idPedido));
         return envioMapper.toResponse(envio);

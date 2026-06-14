@@ -34,7 +34,7 @@ public class Cliente {
     private String nombre;
     @Column(name = "apellido", nullable = false, length = 50)
     private String apellido;
-    @Column(name = "dni", nullable = false, unique = true, length = 20)
+    @Column(name = "dni", nullable = true, unique = true, length = 20)
     private String dni;
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
