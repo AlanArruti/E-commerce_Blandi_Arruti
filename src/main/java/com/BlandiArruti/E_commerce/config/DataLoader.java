@@ -35,7 +35,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -58,7 +62,7 @@ public class DataLoader implements CommandLineRunner {
     private final EnvioRepository envioRepository;
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws Exception {
 
         if (paisRepository.count() > 0) {
             return;
@@ -68,29 +72,7 @@ public class DataLoader implements CommandLineRunner {
         Pais argentina = paisRepository.save(
                 Pais.builder().nombre("Argentina").build()
         );
-        Pais uruguay = paisRepository.save(
-                Pais.builder().nombre("Uruguay").build()
-        );
-        Provincia bsAs = provinciaRepository.save(
-                Provincia.builder().nombre("Buenos Aires").pais(argentina).build()
-        );
-        Provincia cordoba = provinciaRepository.save(
-                Provincia.builder().nombre("Córdoba").pais(argentina).build()
-        );
-        Provincia montevideo = provinciaRepository.save(
-                Provincia.builder().nombre("Montevideo").pais(uruguay).build()
-        );
-        Provincia canelones = provinciaRepository.save(
-                Provincia.builder().nombre("Canelones").pais(uruguay).build()
-        );
-        ciudadRepository.save(Ciudad.builder().nombre("Mar del Plata").provincia(bsAs).build());
-        ciudadRepository.save(Ciudad.builder().nombre("La Plata").provincia(bsAs).build());
-        ciudadRepository.save(Ciudad.builder().nombre("Córdoba Capital").provincia(cordoba).build());
-        ciudadRepository.save(Ciudad.builder().nombre("Villa Carlos Paz").provincia(cordoba).build());
-        ciudadRepository.save(Ciudad.builder().nombre("Montevideo").provincia(montevideo).build());
-        ciudadRepository.save(Ciudad.builder().nombre("Pocitos").provincia(montevideo).build());
-        ciudadRepository.save(Ciudad.builder().nombre("Las Piedras").provincia(canelones).build());
-        ciudadRepository.save(Ciudad.builder().nombre("Pando").provincia(canelones).build());
+        cargarProvinciasYCiudadesArgentina(argentina);
 
         //------------CATEGORIA------------//
         Categoria electronica = categoriaRepository.save(
@@ -206,8 +188,8 @@ public class DataLoader implements CommandLineRunner {
                 .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'Mar del Plata' no encontrada."));
         Ciudad laPlata = ciudadRepository.findByNombre("La Plata")
                 .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'La Plata' no encontrada."));
-        Ciudad cordobaCapital = ciudadRepository.findByNombre("Córdoba Capital")
-                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'Córdoba Capital' no encontrada."));
+        Ciudad cordoba = ciudadRepository.findByNombre("Córdoba")
+                .orElseThrow(() -> new EntidadNoEncontradaException("Ciudad 'Córdoba' no encontrada."));
 
         direccionRepository.save(Direccion.builder()
                 .nombreCalle("Av. Colón")
@@ -227,7 +209,7 @@ public class DataLoader implements CommandLineRunner {
                 .nombreCalle("Bv. San Juan")
                 .numeroCalle(890)
                 .codigoPostal("5000")
-                .ciudad(cordobaCapital)
+                .ciudad(cordoba)
                 .cliente(pedro)
                 .build());
 
@@ -294,5 +276,28 @@ public class DataLoader implements CommandLineRunner {
                 .tipoFactura(TipoFactura.A)
                 .precioTotal(silla.getPrecio() * 2)
                 .build());
+    }
+
+    // Carga las 24 provincias de Argentina y sus ciudades desde un archivo
+    // de texto (formato "Provincia;Ciudad" por linea) para no tener que
+    // escribirlas a mano una por una.
+    private void cargarProvinciasYCiudadesArgentina(Pais argentina) throws Exception {
+        Map<String, Provincia> provincias = new HashMap<>();
+
+        try (BufferedReader lector = new BufferedReader(new InputStreamReader(
+                getClass().getResourceAsStream("/data/argentina-geo.csv"), StandardCharsets.UTF_8))) {
+
+            String linea;
+            while ((linea = lector.readLine()) != null) {
+                String[] partes = linea.split(";");
+                String nombreProvincia = partes[0];
+                String nombreCiudad = partes[1];
+
+                Provincia provincia = provincias.computeIfAbsent(nombreProvincia, nombre ->
+                        provinciaRepository.save(Provincia.builder().nombre(nombre).pais(argentina).build()));
+
+                ciudadRepository.save(Ciudad.builder().nombre(nombreCiudad).provincia(provincia).build());
+            }
+        }
     }
 }
