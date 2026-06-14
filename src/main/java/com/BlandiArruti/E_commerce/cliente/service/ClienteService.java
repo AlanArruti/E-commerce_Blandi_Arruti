@@ -1,5 +1,6 @@
 package com.BlandiArruti.E_commerce.cliente.service;
 
+import com.BlandiArruti.E_commerce.auth.service.UsuarioDetails;
 import com.BlandiArruti.E_commerce.cliente.dto.request.ClienteRequest;
 import com.BlandiArruti.E_commerce.cliente.dto.request.DireccionRequest;
 import com.BlandiArruti.E_commerce.cliente.dto.response.ClienteResponse;
@@ -11,6 +12,7 @@ import com.BlandiArruti.E_commerce.cliente.mapper.DireccionMapper;
 import com.BlandiArruti.E_commerce.cliente.repository.ClienteRepository;
 import com.BlandiArruti.E_commerce.cliente.repository.DireccionRepository;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
+import com.BlandiArruti.E_commerce.enums.Rol;
 import com.BlandiArruti.E_commerce.exception.DuplicadoException;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import com.BlandiArruti.E_commerce.geo.entity.Ciudad;
@@ -19,6 +21,8 @@ import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
 import com.BlandiArruti.E_commerce.pedido.mapper.PedidoMapper;
 import com.BlandiArruti.E_commerce.pedido.repository.PedidoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +43,17 @@ public class ClienteService {
     private final PedidoMapper pedidoMapper;
     private final PasswordEncoder passwordEncoder;
 
+    private UsuarioDetails getPrincipal() {
+        return (UsuarioDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    private void verificarPropietario(Long idCliente) {
+        UsuarioDetails principal = getPrincipal();
+        if (principal.getRol() == Rol.CLIENTE && !principal.getId().equals(idCliente)) {
+            throw new AccessDeniedException("No tenés permiso para acceder a este recurso.");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<ClienteResponse> listarTodos() {
         return clienteRepository.findAllByActivoTrue().stream()
@@ -48,6 +63,7 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public ClienteResponse buscarPorId(Long id) {
+        verificarPropietario(id);
         return clienteMapper.toResponse(
                 clienteRepository.findByIdAndActivoTrue(id)
                         .orElseThrow(() -> EntidadNoEncontradaException.cliente(id))
@@ -67,6 +83,7 @@ public class ClienteService {
     }
 
     public ClienteResponse actualizar(Long id, ClienteRequest request) {
+        verificarPropietario(id);
         Cliente cliente = clienteRepository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.cliente(id));
 
@@ -83,6 +100,7 @@ public class ClienteService {
     }
 
     public void eliminar(Long id) {
+        verificarPropietario(id);
         Cliente cliente = clienteRepository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.cliente(id));
         cliente.setActivo(false);
@@ -91,6 +109,7 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public List<DireccionResponse> listarDirecciones(Long idCliente) {
+        verificarPropietario(idCliente);
         Cliente cliente = clienteRepository.findById(idCliente)
                 .orElseThrow(() -> EntidadNoEncontradaException.cliente(idCliente));
         return cliente.getDirecciones().stream()
@@ -99,6 +118,7 @@ public class ClienteService {
     }
 
     public DireccionResponse agregarDireccion(Long idCliente, DireccionRequest request) {
+        verificarPropietario(idCliente);
         Cliente cliente = clienteRepository.findByIdAndActivoTrue(idCliente)
                 .orElseThrow(() -> EntidadNoEncontradaException.cliente(idCliente));
         Ciudad ciudad = ciudadRepository.findById(request.idCiudad())
@@ -116,6 +136,7 @@ public class ClienteService {
     }
 
     public void eliminarDireccion(Long idCliente, Long idDireccion) {
+        verificarPropietario(idCliente);
         if (clienteRepository.findByIdAndActivoTrue(idCliente).isEmpty()) {
             throw EntidadNoEncontradaException.cliente(idCliente);
         }
@@ -126,6 +147,7 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public List<PedidoResponse> historialPedidos(Long idCliente, EstadoPedido estado) {
+        verificarPropietario(idCliente);
         if (clienteRepository.findByIdAndActivoTrue(idCliente).isEmpty()) {
             throw EntidadNoEncontradaException.cliente(idCliente);
         }

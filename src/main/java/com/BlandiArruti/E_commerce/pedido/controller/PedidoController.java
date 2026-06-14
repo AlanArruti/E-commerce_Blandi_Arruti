@@ -1,5 +1,6 @@
 package com.BlandiArruti.E_commerce.pedido.controller;
 
+import com.BlandiArruti.E_commerce.auth.service.UsuarioDetails;
 import com.BlandiArruti.E_commerce.envio.dto.request.EnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.request.EstadoEnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.response.EnvioResponse;
@@ -14,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,8 +41,10 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<PedidoResponse> crear(@Valid @RequestBody PedidoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crear(request));
+    public ResponseEntity<PedidoResponse> crear(
+            @Valid @RequestBody PedidoRequest request,
+            @AuthenticationPrincipal UsuarioDetails principal) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crear(request, principal));
     }
 
     @PatchMapping("/{id}/cancelar")
@@ -54,6 +59,7 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.pagar(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/estado")
     public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable Long id,
                                                         @Valid @RequestBody EstadoPedidoRequest request) {
@@ -70,12 +76,14 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.obtenerEnvio(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/envio")
     public ResponseEntity<EnvioResponse> crearEnvio(@PathVariable Long id,
                                                     @Valid @RequestBody EnvioRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crearEnvio(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/envio/estado")
     public ResponseEntity<EnvioResponse> actualizarEstadoEnvio(@PathVariable Long id,
                                                                @Valid @RequestBody EstadoEnvioRequest request) {

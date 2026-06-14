@@ -2,10 +2,21 @@ spring:
   application:
     name: E-commerce
 
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope:
+              - user:email
+              - read:user
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/ecommerce
-    username: postgres
-    password: admin123
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -23,7 +34,5 @@ server:
   port: 8080
 
 jwt:
-  # Clave secreta — mínimo 32 caracteres para HMAC-SHA256. Cambiar en producción.
-  secret: ecommerce-secret-key-utn-progr3-blandi-arruti-2025-segura
-  # Expiración del token en milisegundos (86400000 = 24 horas)
+  secret: ${JWT_SECRET}
   expiration: 86400000

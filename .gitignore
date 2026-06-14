@@ -34,3 +34,7 @@ build/
 
 ### Claude Code ###
 .claude/
+
+### Secrets locales — NO subir al repo ###
+application-local.yaml
+src/main/resources/application-local.yaml

@@ -1,6 +1,8 @@
 package com.BlandiArruti.E_commerce.config;
 
 import com.BlandiArruti.E_commerce.auth.filter.JwtAuthFilter;
+import com.BlandiArruti.E_commerce.auth.handler.OAuth2SuccessHandler;
+import com.BlandiArruti.E_commerce.auth.service.GitHubOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -25,14 +27,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final GitHubOAuth2UserService gitHubOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
 
+            // IF_REQUIRED: Spring Security no persiste el SecurityContext en sesión,
+            // pero la sesión Servlet puede existir durante el handshake OAuth2.
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
 
             .exceptionHandling(ex -> ex
@@ -64,6 +70,7 @@ public class SecurityConfig {
                 ).permitAll()
 
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/api/v1/producto/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/categorias/**").permitAll()
@@ -88,6 +95,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/cliente/**").hasAnyRole("ADMIN", "CLIENTE")
 
                 .anyRequest().authenticated()
+            )
+
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(info -> info.userService(gitHubOAuth2UserService))
+                .successHandler(oAuth2SuccessHandler)
+                .failureHandler((req, res, ex) -> {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.setContentType("application/json;charset=UTF-8");
+                    res.getWriter().write(
+                        "{\"status\":401,\"error\":\"OAuth2 fallido\",\"message\":\"" + ex.getMessage() + "\"}"
+                    );
+                })
             )
 
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
