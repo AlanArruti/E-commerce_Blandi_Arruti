@@ -7,8 +7,10 @@ import com.BlandiArruti.E_commerce.cliente.dto.response.DireccionResponse;
 import com.BlandiArruti.E_commerce.cliente.service.ClienteService;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
+import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,8 +27,10 @@ public class ClienteController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<ClienteResponse>> listarTodos() {
-        return ResponseEntity.ok(clienteService.listarTodos());
+    public ResponseEntity<PageResponse<ClienteResponse>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(clienteService.listarTodos(PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")

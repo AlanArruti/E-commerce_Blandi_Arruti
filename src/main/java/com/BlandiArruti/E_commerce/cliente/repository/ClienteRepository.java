@@ -1,6 +1,8 @@
 package com.BlandiArruti.E_commerce.cliente.repository;
 
 import com.BlandiArruti.E_commerce.cliente.entity.Cliente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,6 +17,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findByIdAndActivoTrue(Long id);
 
     List<Cliente> findAllByActivoTrue();
+
+    Page<Cliente> findAllByActivoTrue(Pageable pageable);
 
     boolean existsByEmail(String email);
 

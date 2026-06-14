@@ -2,6 +2,8 @@ package com.BlandiArruti.E_commerce.producto.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.Map;
 import java.util.UUID;
@@ -35,10 +37,8 @@ public class Variante {
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
 
-    @ElementCollection
-    @CollectionTable(name = "variante_atributos", joinColumns = @JoinColumn(name = "id_variante"))
-    @MapKeyColumn(name = "atributo_clave")
-    @Column(name = "atributo_valor")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "atributos", columnDefinition = "jsonb")
     private Map<String, String> atributos;
 
     @Column(name = "stock", nullable = false)

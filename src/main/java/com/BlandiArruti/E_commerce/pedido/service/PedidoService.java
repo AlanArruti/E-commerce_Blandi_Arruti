@@ -18,6 +18,7 @@ import com.BlandiArruti.E_commerce.enums.TipoFactura;
 import com.BlandiArruti.E_commerce.exception.*;
 import com.BlandiArruti.E_commerce.mercadopago.dto.response.PreferenciaResponse;
 import com.BlandiArruti.E_commerce.mercadopago.service.MercadoPagoService;
+import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import com.BlandiArruti.E_commerce.factura.entity.Factura;
 import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
 import com.BlandiArruti.E_commerce.factura.mapper.FacturaMapper;
@@ -36,6 +37,7 @@ import com.BlandiArruti.E_commerce.producto.entity.Variante;
 import com.BlandiArruti.E_commerce.producto.repository.ProductoRepository;
 import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -73,25 +75,21 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> listarTodos(EstadoPedido estado, Long clienteId) {
+    public PageResponse<PedidoResponse> listarTodos(EstadoPedido estado, Long clienteId, Pageable pageable) {
         UsuarioDetails principal = getPrincipal();
 
-        // CLIENTE solo puede ver sus propios pedidos — ignora cualquier clienteId que venga en el param
         if (principal.getRol() == Rol.CLIENTE) {
             clienteId = principal.getId();
         }
 
         if (estado != null && clienteId != null) {
-            return pedidoRepository.findByClienteIdAndEstadoPedido(clienteId, estado)
-                    .stream().map(pedidoMapper::toResponse).toList();
+            return PageResponse.from(pedidoRepository.findByClienteIdAndEstadoPedido(clienteId, estado, pageable).map(pedidoMapper::toResponse));
         } else if (estado != null) {
-            return pedidoRepository.findByEstadoPedido(estado)
-                    .stream().map(pedidoMapper::toResponse).toList();
+            return PageResponse.from(pedidoRepository.findByEstadoPedido(estado, pageable).map(pedidoMapper::toResponse));
         } else if (clienteId != null) {
-            return pedidoRepository.findByClienteId(clienteId)
-                    .stream().map(pedidoMapper::toResponse).toList();
+            return PageResponse.from(pedidoRepository.findByClienteId(clienteId, pageable).map(pedidoMapper::toResponse));
         }
-        return pedidoRepository.findAll().stream().map(pedidoMapper::toResponse).toList();
+        return PageResponse.from(pedidoRepository.findAll(pageable).map(pedidoMapper::toResponse));
     }
 
     @Transactional(readOnly = true)

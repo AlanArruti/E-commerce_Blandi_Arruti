@@ -20,7 +20,9 @@ import com.BlandiArruti.E_commerce.geo.repository.CiudadRepository;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
 import com.BlandiArruti.E_commerce.pedido.mapper.PedidoMapper;
 import com.BlandiArruti.E_commerce.pedido.repository.PedidoRepository;
+import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,10 +57,10 @@ public class ClienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClienteResponse> listarTodos() {
-        return clienteRepository.findAllByActivoTrue().stream()
-                .map(clienteMapper::toResponse)
-                .toList();
+    public PageResponse<ClienteResponse> listarTodos(Pageable pageable) {
+        return PageResponse.from(
+                clienteRepository.findAllByActivoTrue(pageable).map(clienteMapper::toResponse)
+        );
     }
 
     @Transactional(readOnly = true)

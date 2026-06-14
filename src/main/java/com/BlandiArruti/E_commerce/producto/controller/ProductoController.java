@@ -6,8 +6,10 @@ import com.BlandiArruti.E_commerce.producto.dto.request.VarianteRequest;
 import com.BlandiArruti.E_commerce.producto.dto.response.ProductoResponse;
 import com.BlandiArruti.E_commerce.producto.dto.response.VarianteResponse;
 import com.BlandiArruti.E_commerce.producto.service.ProductoService;
+import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,12 +24,14 @@ public class ProductoController {
     private final ProductoService productoService;
 
     @GetMapping
-    public ResponseEntity<List<ProductoResponse>> listarTodos(
+    public ResponseEntity<PageResponse<ProductoResponse>> listarTodos(
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) Double precioMin,
             @RequestParam(required = false) Double precioMax,
-            @RequestParam(required = false) String search) {
-        return ResponseEntity.ok(productoService.listarTodos(categoriaId, precioMin, precioMax, search));
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(productoService.listarTodos(categoriaId, precioMin, precioMax, search, PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")

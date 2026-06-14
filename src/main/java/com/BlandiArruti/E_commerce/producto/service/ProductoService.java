@@ -16,7 +16,9 @@ import com.BlandiArruti.E_commerce.producto.mapper.ProductoMapper;
 import com.BlandiArruti.E_commerce.producto.mapper.VarianteMapper;
 import com.BlandiArruti.E_commerce.producto.repository.ProductoRepository;
 import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
+import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,25 +36,12 @@ public class ProductoService {
     private final VarianteMapper varianteMapper;
 
     @Transactional(readOnly = true)
-    public List<ProductoResponse> listarTodos(Long categoriaId, Double precioMin, Double precioMax, String search) {
-        List<Producto> productos;
-        boolean hasSearch = search != null && !search.isBlank();
-
-        if (hasSearch && categoriaId != null) {
-            productos = productoRepository.findByActivoTrueAndNombreContainingIgnoreCaseAndCategoriaId(search.trim(), categoriaId);
-        } else if (hasSearch) {
-            productos = productoRepository.findByActivoTrueAndNombreContainingIgnoreCase(search.trim());
-        } else if (categoriaId != null) {
-            productos = productoRepository.findByActivoTrueAndCategoriaId(categoriaId);
-        } else {
-            productos = productoRepository.findAllByActivoTrue();
-        }
-
-        return productos.stream()
-                .filter(p -> precioMin == null || p.getPrecio() >= precioMin)
-                .filter(p -> precioMax == null || p.getPrecio() <= precioMax)
-                .map(productoMapper::toResponse)
-                .toList();
+    public PageResponse<ProductoResponse> listarTodos(Long categoriaId, Double precioMin, Double precioMax, String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
+        return PageResponse.from(
+                productoRepository.buscarConFiltros(categoriaId, precioMin, precioMax, searchParam, pageable)
+                        .map(productoMapper::toResponse)
+        );
     }
 
     @Transactional(readOnly = true)
