@@ -9,7 +9,9 @@ import com.BlandiArruti.E_commerce.envio.entity.Envio;
 import com.BlandiArruti.E_commerce.envio.mapper.EnvioMapper;
 import com.BlandiArruti.E_commerce.envio.repository.EnvioRepository;
 import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
+import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.exception.ConflictoException;
+import com.BlandiArruti.E_commerce.exception.EcommerceException;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import com.BlandiArruti.E_commerce.pedido.entity.Pedido;
 import com.BlandiArruti.E_commerce.pedido.repository.PedidoRepository;
@@ -48,6 +50,11 @@ public class EnvioService {
         Pedido pedido = pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> EntidadNoEncontradaException.pedido(idPedido));
 
+        if (pedido.getEstadoPedido() != EstadoPedido.PAGADO) {
+            throw new EcommerceException(
+                    "Solo se puede crear un envío para pedidos en estado PAGADO.");
+        }
+
         if (envioRepository.findByPedidoId(idPedido).isPresent()) {
             throw new ConflictoException("El pedido con id " + idPedido + " ya tiene un envío asignado.");
         }
@@ -62,20 +69,57 @@ public class EnvioService {
                 .fechaSalida(request.fechaSalida())
                 .fechaLlegada(request.fechaLlegada())
                 .build();
+        envioRepository.save(envio);
 
-        return envioMapper.toResponse(envioRepository.save(envio));
+        pedido.setEstadoPedido(EstadoPedido.DESPACHADO);
+        pedido.setEnvio(envio);
+        pedidoRepository.save(pedido);
+
+        return envioMapper.toResponse(envio);
     }
 
     public EnvioResponse actualizarEstado(Long id, EstadoEnvioRequest request) {
         Envio envio = envioRepository.findById(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.envio(id));
-        envio.setEstado(request.estado());
+
+        EstadoEnvio actual = envio.getEstado();
+        EstadoEnvio nuevo = request.estado();
+
+        boolean valida = switch (actual) {
+            case DESPACHADO -> nuevo == EstadoEnvio.EN_CAMINO;
+            case EN_CAMINO  -> nuevo == EstadoEnvio.ENTREGADO;
+            default         -> false;
+        };
+
+        if (!valida) {
+            throw new EcommerceException(
+                    "Transición de estado de envío inválida: " + actual + " → " + nuevo + ".");
+        }
+
+        envio.setEstado(nuevo);
+
+        if (nuevo == EstadoEnvio.ENTREGADO) {
+            Pedido pedido = envio.getPedido();
+            pedido.setEstadoPedido(EstadoPedido.ENTREGADO);
+            pedidoRepository.save(pedido);
+        }
+
         return envioMapper.toResponse(envioRepository.save(envio));
     }
 
     public void eliminar(Long id) {
         Envio envio = envioRepository.findById(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.envio(id));
+
+        if (envio.getEstado() == EstadoEnvio.ENTREGADO) {
+            throw new ConflictoException("No se puede eliminar un envío que ya fue entregado.");
+        }
+
+        Pedido pedido = envio.getPedido();
+        pedido.setEstadoPedido(EstadoPedido.PAGADO);
+        pedido.setEnvio(null);
+        pedidoRepository.save(pedido);
+
         envioRepository.delete(envio);
     }
 }

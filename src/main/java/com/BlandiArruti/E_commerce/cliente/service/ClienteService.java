@@ -142,6 +142,9 @@ public class ClienteService {
         }
         Direccion direccion = direccionRepository.findById(idDireccion)
                 .orElseThrow(() -> EntidadNoEncontradaException.direccion(idDireccion));
+        if (!direccion.getCliente().getId().equals(idCliente)) {
+            throw new AccessDeniedException("La dirección no pertenece al cliente indicado.");
+        }
         direccionRepository.delete(direccion);
     }
 

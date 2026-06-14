@@ -47,7 +47,7 @@ public class SecurityConfig {
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write(
                         "{\"status\":401,\"error\":\"No autorizado\",\"message\":\"" +
-                        authException.getMessage() + "\"}"
+                        escaparJson(authException.getMessage()) + "\"}"
                     );
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
@@ -55,7 +55,7 @@ public class SecurityConfig {
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write(
                         "{\"status\":403,\"error\":\"Acceso denegado\",\"message\":\"" +
-                        accessDeniedException.getMessage() + "\"}"
+                        escaparJson(accessDeniedException.getMessage()) + "\"}"
                     );
                 })
             )
@@ -80,6 +80,7 @@ public class SecurityConfig {
                 // ── Solo ADMIN ───────────────────────────────────────────────
                 .requestMatchers("/api/v1/administrador/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/envio/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/factura/**").hasRole("ADMIN")
 
                 .requestMatchers(HttpMethod.POST,   "/api/v1/producto/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/v1/producto/**").hasRole("ADMIN")
@@ -104,7 +105,7 @@ public class SecurityConfig {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     res.setContentType("application/json;charset=UTF-8");
                     res.getWriter().write(
-                        "{\"status\":401,\"error\":\"OAuth2 fallido\",\"message\":\"" + ex.getMessage() + "\"}"
+                        "{\"status\":401,\"error\":\"OAuth2 fallido\",\"message\":\"" + escaparJson(ex.getMessage()) + "\"}"
                     );
                 })
             )
@@ -112,6 +113,11 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private static String escaparJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     @Bean

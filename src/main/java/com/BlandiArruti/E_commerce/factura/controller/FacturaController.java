@@ -1,7 +1,7 @@
 package com.BlandiArruti.E_commerce.factura.controller;
 
 import com.BlandiArruti.E_commerce.enums.TipoFactura;
-import com.BlandiArruti.E_commerce.factura.dto.request.FacturaResponse;
+import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
 import com.BlandiArruti.E_commerce.factura.service.FacturaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

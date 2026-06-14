@@ -1,5 +1,6 @@
 package com.BlandiArruti.E_commerce.carrito.service;
 
+import com.BlandiArruti.E_commerce.auth.service.UsuarioDetails;
 import com.BlandiArruti.E_commerce.carrito.dto.request.CantidadCarritoRequest;
 import com.BlandiArruti.E_commerce.carrito.dto.request.ItemCarritoRequest;
 import com.BlandiArruti.E_commerce.carrito.dto.response.CarritoResponse;
@@ -10,6 +11,7 @@ import com.BlandiArruti.E_commerce.carrito.repository.CarritoRepository;
 import com.BlandiArruti.E_commerce.carrito.repository.ItemCarritoRepository;
 import com.BlandiArruti.E_commerce.cliente.entity.Cliente;
 import com.BlandiArruti.E_commerce.cliente.repository.ClienteRepository;
+import com.BlandiArruti.E_commerce.enums.Rol;
 import com.BlandiArruti.E_commerce.exception.ConflictoException;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import com.BlandiArruti.E_commerce.exception.StockInsuficienteException;
@@ -20,6 +22,8 @@ import com.BlandiArruti.E_commerce.pedido.service.PedidoService;
 import com.BlandiArruti.E_commerce.producto.entity.Variante;
 import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,7 +119,7 @@ public class CarritoService {
                         item.getCantidad()))
                 .toList();
 
-        PedidoResponse pedido = pedidoService.crear(new PedidoRequest(idCliente, items));
+        PedidoResponse pedido = pedidoService.crear(new PedidoRequest(idCliente, items), getPrincipal());
 
         carrito.getItems().clear();
         carritoRepository.save(carrito);
@@ -123,7 +127,19 @@ public class CarritoService {
         return pedido;
     }
 
+    private UsuarioDetails getPrincipal() {
+        return (UsuarioDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    private void verificarPropietario(Long idCliente) {
+        UsuarioDetails principal = getPrincipal();
+        if (principal.getRol() == Rol.CLIENTE && !principal.getId().equals(idCliente)) {
+            throw new AccessDeniedException("No tenés permiso para acceder a este carrito.");
+        }
+    }
+
     private Carrito obtenerOCrearCarrito(Long idCliente) {
+        verificarPropietario(idCliente);
         return carritoRepository.findByClienteId(idCliente)
                 .orElseGet(() -> {
                     Cliente cliente = clienteRepository.findById(idCliente)

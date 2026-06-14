@@ -36,8 +36,11 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public List<ProductoResponse> listarTodos(Long categoriaId, Double precioMin, Double precioMax, String search) {
         List<Producto> productos;
+        boolean hasSearch = search != null && !search.isBlank();
 
-        if (search != null && !search.isBlank()) {
+        if (hasSearch && categoriaId != null) {
+            productos = productoRepository.findByActivoTrueAndNombreContainingIgnoreCaseAndCategoriaId(search.trim(), categoriaId);
+        } else if (hasSearch) {
             productos = productoRepository.findByActivoTrueAndNombreContainingIgnoreCase(search.trim());
         } else if (categoriaId != null) {
             productos = productoRepository.findByActivoTrueAndCategoriaId(categoriaId);

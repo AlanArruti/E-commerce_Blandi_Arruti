@@ -1,6 +1,6 @@
 package com.BlandiArruti.E_commerce.factura.mapper;
 
-import com.BlandiArruti.E_commerce.factura.dto.request.FacturaResponse;
+import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
 import com.BlandiArruti.E_commerce.factura.entity.Factura;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
