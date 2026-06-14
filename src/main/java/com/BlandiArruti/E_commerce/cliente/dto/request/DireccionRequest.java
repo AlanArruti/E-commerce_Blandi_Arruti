@@ -14,6 +14,10 @@ public record DireccionRequest(
         @Positive(message = "El número de calle debe ser positivo.")
         Integer numeroCalle,
 
+        @NotBlank(message = "El código postal no puede estar vacío.")
+        @Size(max = 8, message = "El código postal no puede superar los 8 caracteres.")
+        String codigoPostal,
+
         @NotNull(message = "El id de ciudad es obligatorio.")
         Long idCiudad
 ) {}

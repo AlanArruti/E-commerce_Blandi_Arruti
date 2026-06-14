@@ -212,18 +212,21 @@ public class DataLoader implements CommandLineRunner {
         direccionRepository.save(Direccion.builder()
                 .nombreCalle("Av. Colón")
                 .numeroCalle(1234)
+                .codigoPostal("7600")
                 .ciudad(marDelPlata)
                 .cliente(juan)
                 .build());
         direccionRepository.save(Direccion.builder()
                 .nombreCalle("Calle 13")
                 .numeroCalle(567)
+                .codigoPostal("1900")
                 .ciudad(laPlata)
                 .cliente(maria)
                 .build());
         Direccion dirPedro = direccionRepository.save(Direccion.builder()
                 .nombreCalle("Bv. San Juan")
                 .numeroCalle(890)
+                .codigoPostal("5000")
                 .ciudad(cordobaCapital)
                 .cliente(pedro)
                 .build());

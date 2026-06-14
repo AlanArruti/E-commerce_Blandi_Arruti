@@ -36,3 +36,10 @@ server:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
+
+correo-argentino:
+  base-url: https://apitest.correoargentino.com.ar/micorreo/v1
+  user-token: ${CORREO_ARGENTINO_USER_TOKEN:}
+  password-token: ${CORREO_ARGENTINO_PASSWORD_TOKEN:}
+  customer-id: ${CORREO_ARGENTINO_CUSTOMER_ID:}
+  codigo-postal-origen: "1425"

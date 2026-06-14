@@ -128,6 +128,7 @@ public class ClienteService {
         Direccion direccion = Direccion.builder()
                 .nombreCalle(request.nombreCalle())
                 .numeroCalle(request.numeroCalle())
+                .codigoPostal(request.codigoPostal())
                 .ciudad(ciudad)
                 .cliente(cliente)
                 .build();
