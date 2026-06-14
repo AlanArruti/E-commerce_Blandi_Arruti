@@ -93,6 +93,7 @@ public class SecurityConfig {
                 // ── ADMIN o CLIENTE ──────────────────────────────────────────
                 .requestMatchers("/api/v1/pedido/**").hasAnyRole("ADMIN", "CLIENTE")
                 .requestMatchers("/api/v1/cliente/**").hasAnyRole("ADMIN", "CLIENTE")
+                .requestMatchers("/api/v1/cotizacion/**").hasAnyRole("ADMIN", "CLIENTE")
 
                 .anyRequest().authenticated()
             )

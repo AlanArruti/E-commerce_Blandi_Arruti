@@ -38,6 +38,9 @@ public class Direccion {
     @Column(name = "numero_calle", nullable = false)
     private Integer numeroCalle;
 
+    @Column(name = "codigo_postal", nullable = false, length = 8)
+    private String codigoPostal;
+
     // -------- RELACIONES --------
     // Muchas direcciones pertenecen a UNA ciudad.
     // Esta clase es el LADO DUEÑO: acá vive la FK "id_ciudad".

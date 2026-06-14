@@ -6,5 +6,6 @@ public record DireccionResponse(
         String uuidDireccion,
         String nombreCalle,
         Integer numeroCalle,
+        String codigoPostal,
         CiudadResponse ciudad
 ) {}
