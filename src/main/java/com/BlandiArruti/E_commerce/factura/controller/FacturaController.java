@@ -19,8 +19,9 @@ public class FacturaController {
     @GetMapping
     public ResponseEntity<List<FacturaResponse>> listarTodas(
             @RequestParam(required = false) TipoFactura tipo,
-            @RequestParam(required = false) Long idPedido) {
-        return ResponseEntity.ok(facturaService.listarTodas(tipo, idPedido));
+            @RequestParam(required = false) Long idPedido,
+            @RequestParam(required = false) Long idCliente) {
+        return ResponseEntity.ok(facturaService.listarTodas(tipo, idPedido, idCliente));
     }
 
     @GetMapping("/{id}")

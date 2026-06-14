@@ -47,6 +47,19 @@ public class AdministradorService {
         return administradorMapper.toResponse(administradorRepository.save(admin));
     }
 
+    public AdministradorResponse actualizar(Long id, AdministradorRequest request) {
+        Administrador admin = administradorRepository.findById(id)
+                .orElseThrow(() -> EntidadNoEncontradaException.administrador(id));
+
+        administradorRepository.findByUsername(request.username())
+                .filter(a -> !a.getId().equals(id))
+                .ifPresent(a -> { throw DuplicadoException.username(request.username()); });
+
+        admin.setUsername(request.username());
+        admin.setContrasenia(passwordEncoder.encode(request.contrasenia()));
+        return administradorMapper.toResponse(administradorRepository.save(admin));
+    }
+
     public void eliminar(Long id) {
         Administrador admin = administradorRepository.findById(id)
                 .orElseThrow(() -> EntidadNoEncontradaException.administrador(id));
