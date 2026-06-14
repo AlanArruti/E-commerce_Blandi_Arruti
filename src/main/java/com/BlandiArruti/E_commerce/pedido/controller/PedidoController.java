@@ -12,8 +12,10 @@ import com.BlandiArruti.E_commerce.pedido.dto.request.PagoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.request.PedidoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
 import com.BlandiArruti.E_commerce.pedido.service.PedidoService;
+import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,10 +32,12 @@ public class PedidoController {
     private final PedidoService pedidoService;
 
     @GetMapping
-    public ResponseEntity<List<PedidoResponse>> listarTodos(
+    public ResponseEntity<PageResponse<PedidoResponse>> listarTodos(
             @RequestParam(required = false) EstadoPedido estado,
-            @RequestParam(required = false) Long clienteId) {
-        return ResponseEntity.ok(pedidoService.listarTodos(estado, clienteId));
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(pedidoService.listarTodos(estado, clienteId, PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")
