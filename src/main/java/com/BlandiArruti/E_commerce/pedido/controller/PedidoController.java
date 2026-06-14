@@ -6,6 +6,7 @@ import com.BlandiArruti.E_commerce.envio.dto.request.EstadoEnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.response.EnvioResponse;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
+import com.BlandiArruti.E_commerce.mercadopago.dto.response.PreferenciaResponse;
 import com.BlandiArruti.E_commerce.pedido.dto.request.EstadoPedidoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.request.PagoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.request.PedidoRequest;
@@ -51,6 +52,12 @@ public class PedidoController {
     public ResponseEntity<Void> cancelar(@PathVariable Long id) {
         pedidoService.cancelar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/iniciar-pago")
+    public ResponseEntity<PreferenciaResponse> iniciarPago(@PathVariable Long id,
+                                                           @Valid @RequestBody PagoRequest request) {
+        return ResponseEntity.ok(pedidoService.iniciarPagoMercadoPago(id, request));
     }
 
     @PatchMapping("/{id}/pagar")

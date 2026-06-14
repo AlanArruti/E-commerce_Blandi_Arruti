@@ -1,0 +1,67 @@
+package com.BlandiArruti.E_commerce.mercadopago.controller;
+
+import com.BlandiArruti.E_commerce.enums.TipoFactura;
+import com.BlandiArruti.E_commerce.pedido.service.PedidoService;
+import com.BlandiArruti.E_commerce.mercadopago.service.MercadoPagoService;
+import com.mercadopago.resources.payment.Payment;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/v1/webhook")
+@RequiredArgsConstructor
+@Slf4j
+public class WebhookController {
+
+    private final MercadoPagoService mercadoPagoService;
+    private final PedidoService pedidoService;
+
+    @PostMapping("/mercadopago")
+    public ResponseEntity<Void> recibirNotificacion(@RequestBody Map<String, Object> body) {
+        String type = (String) body.get("type");
+
+        if (!"payment".equals(type)) {
+            return ResponseEntity.ok().build();
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) body.get("data");
+        if (data == null || data.get("id") == null) {
+            return ResponseEntity.ok().build();
+        }
+
+        Long paymentId = Long.valueOf(data.get("id").toString());
+        log.info("Webhook MP recibido: type={}, paymentId={}", type, paymentId);
+
+        try {
+            Payment payment = mercadoPagoService.obtenerPago(paymentId);
+
+            if (!"approved".equals(payment.getStatus())) {
+                log.info("Pago {} no aprobado (status={}), ignorando.", paymentId, payment.getStatus());
+                return ResponseEntity.ok().build();
+            }
+
+            String externalReference = payment.getExternalReference();
+            if (externalReference == null || !externalReference.contains("|")) {
+                log.warn("Pago {} sin external_reference válido: {}", paymentId, externalReference);
+                return ResponseEntity.ok().build();
+            }
+
+            String[] partes = externalReference.split("\\|");
+            Long pedidoId = Long.valueOf(partes[0]);
+            TipoFactura tipoFactura = TipoFactura.valueOf(partes[1]);
+
+            pedidoService.confirmarPagoMercadoPago(pedidoId, tipoFactura);
+            log.info("Pago confirmado para pedido {} via MercadoPago (paymentId={})", pedidoId, paymentId);
+
+        } catch (Exception e) {
+            log.error("Error procesando webhook MP (paymentId={}): {}", paymentId, e.getMessage());
+        }
+
+        return ResponseEntity.ok().build();
+    }
+}

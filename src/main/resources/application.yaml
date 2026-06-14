@@ -36,3 +36,8 @@ server:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
+
+mercadopago:
+  access-token: ${MP_ACCESS_TOKEN}
+  notification-url: ${MP_NOTIFICATION_URL:}
+  back-url: ${MP_BACK_URL:http://localhost:8080}
