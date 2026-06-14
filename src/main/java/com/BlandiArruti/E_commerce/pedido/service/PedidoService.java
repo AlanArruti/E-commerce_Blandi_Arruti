@@ -14,7 +14,10 @@ import com.BlandiArruti.E_commerce.envio.repository.EnvioRepository;
 import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.enums.Rol;
+import com.BlandiArruti.E_commerce.enums.TipoFactura;
 import com.BlandiArruti.E_commerce.exception.*;
+import com.BlandiArruti.E_commerce.mercadopago.dto.response.PreferenciaResponse;
+import com.BlandiArruti.E_commerce.mercadopago.service.MercadoPagoService;
 import com.BlandiArruti.E_commerce.factura.entity.Factura;
 import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
 import com.BlandiArruti.E_commerce.factura.mapper.FacturaMapper;
@@ -53,6 +56,7 @@ public class PedidoService {
     private final FacturaRepository facturaRepository;
     private final EnvioRepository envioRepository;
     private final DireccionRepository direccionRepository;
+    private final MercadoPagoService mercadoPagoService;
     private final PedidoMapper pedidoMapper;
     private final FacturaMapper facturaMapper;
     private final EnvioMapper envioMapper;
@@ -165,6 +169,52 @@ public class PedidoService {
         }
 
         pedido.setEstadoPedido(EstadoPedido.CANCELADO);
+        pedidoRepository.save(pedido);
+    }
+
+    public PreferenciaResponse iniciarPagoMercadoPago(Long id, PagoRequest request) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> EntidadNoEncontradaException.pedido(id));
+        verificarPropietario(pedido);
+
+        if (pedido.getEstadoPedido() != EstadoPedido.PENDIENTE_PAGO) {
+            throw PedidoNoModificableException.porEstado(id, pedido.getEstadoPedido());
+        }
+
+        return mercadoPagoService.crearPreferencia(pedido, request.tipoFactura());
+    }
+
+    public void confirmarPagoMercadoPago(Long pedidoId, TipoFactura tipoFactura) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> EntidadNoEncontradaException.pedido(pedidoId));
+
+        if (pedido.getEstadoPedido() != EstadoPedido.PENDIENTE_PAGO) {
+            return;
+        }
+
+        for (ItemPedido item : pedido.getItems()) {
+            Variante variante = item.getVariante();
+            if (variante.getStock() < item.getCantidad()) {
+                throw StockInsuficienteException.stockInsuficiente(
+                        variante.getId(), variante.getStock(), item.getCantidad());
+            }
+            variante.setStock(variante.getStock() - item.getCantidad());
+            varianteRepository.save(variante);
+        }
+
+        double total = pedido.getItems().stream()
+                .mapToDouble(ItemPedido::getPrecioProducto)
+                .sum();
+
+        Factura factura = Factura.builder()
+                .pedido(pedido)
+                .tipoFactura(tipoFactura)
+                .precioTotal(total)
+                .build();
+        facturaRepository.save(factura);
+
+        pedido.setEstadoPedido(EstadoPedido.PAGADO);
+        pedido.setFactura(factura);
         pedidoRepository.save(pedido);
     }
 
