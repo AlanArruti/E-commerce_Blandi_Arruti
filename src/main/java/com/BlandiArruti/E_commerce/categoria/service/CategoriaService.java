@@ -26,8 +26,12 @@ public class CategoriaService {
     private final CategoriaMapper categoriaMapper;
 
     @Transactional(readOnly = true)
-    public List<CategoriaResponse> listarTodas() {
-        return categoriaRepository.findAll().stream()
+    public List<CategoriaResponse> listarTodas(String nombre) {
+        List<Categoria> categorias = (nombre != null && !nombre.isBlank())
+                ? categoriaRepository.findByNombreContainingIgnoreCase(nombre.trim())
+                : categoriaRepository.findAll();
+
+        return categorias.stream()
                 .map(categoriaMapper::toResponse)
                 .toList();
     }
