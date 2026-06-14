@@ -33,6 +33,12 @@ public class AdministradorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(administradorService.crear(request));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<AdministradorResponse> actualizar(@PathVariable Long id,
+                                                            @Valid @RequestBody AdministradorRequest request) {
+        return ResponseEntity.ok(administradorService.actualizar(id, request));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         administradorService.eliminar(id);

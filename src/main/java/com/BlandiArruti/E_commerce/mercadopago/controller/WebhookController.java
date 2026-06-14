@@ -52,6 +52,11 @@ public class WebhookController {
             }
 
             String[] partes = externalReference.split("\\|");
+            if (partes.length < 2) {
+                log.warn("Pago {} external_reference malformado: {}", paymentId, externalReference);
+                return ResponseEntity.ok().build();
+            }
+
             Long pedidoId = Long.valueOf(partes[0]);
             TipoFactura tipoFactura = TipoFactura.valueOf(partes[1]);
 

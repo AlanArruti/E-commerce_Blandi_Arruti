@@ -14,4 +14,6 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
     Optional<Factura> findByPedidoId(Long idPedido);
 
     List<Factura> findByTipoFactura(TipoFactura tipo);
+
+    List<Factura> findByPedidoClienteId(Long idCliente);
 }

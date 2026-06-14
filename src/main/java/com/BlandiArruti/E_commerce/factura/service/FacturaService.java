@@ -20,12 +20,14 @@ public class FacturaService {
     private final FacturaRepository facturaRepository;
     private final FacturaMapper facturaMapper;
 
-    public List<FacturaResponse> listarTodas(TipoFactura tipo, Long idPedido) {
+    public List<FacturaResponse> listarTodas(TipoFactura tipo, Long idPedido, Long idCliente) {
         List<Factura> facturas;
 
         if (idPedido != null) {
             facturas = List.of(facturaRepository.findByPedidoId(idPedido)
                     .orElseThrow(() -> EntidadNoEncontradaException.facturaPorPedido(idPedido)));
+        } else if (idCliente != null) {
+            facturas = facturaRepository.findByPedidoClienteId(idCliente);
         } else if (tipo != null) {
             facturas = facturaRepository.findByTipoFactura(tipo);
         } else {

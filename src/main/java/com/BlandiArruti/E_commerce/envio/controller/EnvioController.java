@@ -4,6 +4,7 @@ import com.BlandiArruti.E_commerce.envio.dto.request.EnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.request.EstadoEnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.response.EnvioResponse;
 import com.BlandiArruti.E_commerce.envio.service.EnvioService;
+import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,9 @@ public class EnvioController {
     private final EnvioService envioService;
 
     @GetMapping
-    public ResponseEntity<List<EnvioResponse>> listarTodos() {
-        return ResponseEntity.ok(envioService.listarTodos());
+    public ResponseEntity<List<EnvioResponse>> listarTodos(
+            @RequestParam(required = false) EstadoEnvio estado) {
+        return ResponseEntity.ok(envioService.listarTodos(estado));
     }
 
     @GetMapping("/{id}")

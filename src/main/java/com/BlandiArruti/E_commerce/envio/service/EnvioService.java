@@ -32,10 +32,11 @@ public class EnvioService {
     private final DireccionRepository direccionRepository;
 
     @Transactional(readOnly = true)
-    public List<EnvioResponse> listarTodos() {
-        return envioRepository.findAll().stream()
-                .map(envioMapper::toResponse)
-                .toList();
+    public List<EnvioResponse> listarTodos(EstadoEnvio estado) {
+        List<Envio> envios = estado != null
+                ? envioRepository.findByEstado(estado)
+                : envioRepository.findAll();
+        return envios.stream().map(envioMapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
