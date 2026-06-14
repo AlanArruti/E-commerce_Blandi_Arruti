@@ -45,6 +45,10 @@ public class EntidadNoEncontradaException extends EcommerceException {
         return new EntidadNoEncontradaException("Factura con id " + id + " no encontrada.");
     }
 
+    public static EntidadNoEncontradaException facturaPorPedido(Long idPedido) {
+        return new EntidadNoEncontradaException("No existe factura para el pedido con id " + idPedido + ".");
+    }
+
     // -- Direcciones --
     public static EntidadNoEncontradaException direccion(Long id) {
         return new EntidadNoEncontradaException("Dirección con id " + id + " no encontrada.");

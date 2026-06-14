@@ -20,8 +20,9 @@ public class CategoriaController {
     private final CategoriaService categoriaService;
 
     @GetMapping
-    public ResponseEntity<List<CategoriaResponse>> listarTodas() {
-        return ResponseEntity.ok(categoriaService.listarTodas());
+    public ResponseEntity<List<CategoriaResponse>> listarTodas(
+            @RequestParam(required = false) String nombre) {
+        return ResponseEntity.ok(categoriaService.listarTodas(nombre));
     }
 
     @GetMapping("/{id}")
