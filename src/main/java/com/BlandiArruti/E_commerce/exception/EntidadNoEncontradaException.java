@@ -45,6 +45,10 @@ public class EntidadNoEncontradaException extends EcommerceException {
         return new EntidadNoEncontradaException("Factura con id " + id + " no encontrada.");
     }
 
+    public static EntidadNoEncontradaException facturaPorPedido(Long idPedido) {
+        return new EntidadNoEncontradaException("No existe factura para el pedido con id " + idPedido + ".");
+    }
+
     // -- Direcciones --
     public static EntidadNoEncontradaException direccion(Long id) {
         return new EntidadNoEncontradaException("Dirección con id " + id + " no encontrada.");
@@ -53,5 +57,15 @@ public class EntidadNoEncontradaException extends EcommerceException {
     // -- Administradores --
     public static EntidadNoEncontradaException administrador(Long id) {
         return new EntidadNoEncontradaException("Administrador con id " + id + " no encontrado.");
+    }
+
+    // -- Carritos --
+    public static EntidadNoEncontradaException carrito(Long id) {
+        return new EntidadNoEncontradaException("Carrito con id " + id + " no encontrado.");
+    }
+
+    // -- Items de carrito --
+    public static EntidadNoEncontradaException itemCarrito(Long id) {
+        return new EntidadNoEncontradaException("Ítem de carrito con id " + id + " no encontrado.");
     }
 }

@@ -1,7 +1,9 @@
 package com.BlandiArruti.E_commerce.factura.service;
 
+import com.BlandiArruti.E_commerce.enums.TipoFactura;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import com.BlandiArruti.E_commerce.factura.dto.request.FacturaResponse;
+import com.BlandiArruti.E_commerce.factura.entity.Factura;
 import com.BlandiArruti.E_commerce.factura.mapper.FacturaMapper;
 import com.BlandiArruti.E_commerce.factura.repository.FacturaRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +20,19 @@ public class FacturaService {
     private final FacturaRepository facturaRepository;
     private final FacturaMapper facturaMapper;
 
-    public List<FacturaResponse> listarTodas() {
-        return facturaRepository.findAll().stream()
+    public List<FacturaResponse> listarTodas(TipoFactura tipo, Long idPedido) {
+        List<Factura> facturas;
+
+        if (idPedido != null) {
+            facturas = List.of(facturaRepository.findByPedidoId(idPedido)
+                    .orElseThrow(() -> EntidadNoEncontradaException.facturaPorPedido(idPedido)));
+        } else if (tipo != null) {
+            facturas = facturaRepository.findByTipoFactura(tipo);
+        } else {
+            facturas = facturaRepository.findAll();
+        }
+
+        return facturas.stream()
                 .map(facturaMapper::toResponse)
                 .toList();
     }
