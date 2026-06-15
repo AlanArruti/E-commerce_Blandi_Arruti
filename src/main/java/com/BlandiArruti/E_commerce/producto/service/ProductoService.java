@@ -102,10 +102,10 @@ public class ProductoService {
     }
 
     public VarianteResponse actualizarVariante(Long idProducto, Long idVariante, VarianteRequest request) {
-        if (productoRepository.findByIdAndActivoTrue(idProducto).isEmpty()) {
-            throw EntidadNoEncontradaException.producto(idProducto);
-        }
+        productoRepository.findByIdAndActivoTrue(idProducto)
+                .orElseThrow(() -> EntidadNoEncontradaException.producto(idProducto));
         Variante variante = varianteRepository.findByIdAndActivoTrue(idVariante)
+                .filter(v -> v.getProducto().getId().equals(idProducto))
                 .orElseThrow(() -> EntidadNoEncontradaException.variante(idVariante));
 
         variante.setAtributos(request.atributos());
@@ -114,20 +114,20 @@ public class ProductoService {
     }
 
     public void eliminarVariante(Long idProducto, Long idVariante) {
-        if (productoRepository.findByIdAndActivoTrue(idProducto).isEmpty()) {
-            throw EntidadNoEncontradaException.producto(idProducto);
-        }
+        productoRepository.findByIdAndActivoTrue(idProducto)
+                .orElseThrow(() -> EntidadNoEncontradaException.producto(idProducto));
         Variante variante = varianteRepository.findByIdAndActivoTrue(idVariante)
+                .filter(v -> v.getProducto().getId().equals(idProducto))
                 .orElseThrow(() -> EntidadNoEncontradaException.variante(idVariante));
         variante.setActivo(false);
         varianteRepository.save(variante);
     }
 
     public VarianteResponse ajustarStock(Long idProducto, Long idVariante, StockRequest request) {
-        if (productoRepository.findByIdAndActivoTrue(idProducto).isEmpty()) {
-            throw EntidadNoEncontradaException.producto(idProducto);
-        }
+        productoRepository.findByIdAndActivoTrue(idProducto)
+                .orElseThrow(() -> EntidadNoEncontradaException.producto(idProducto));
         Variante variante = varianteRepository.findByIdAndActivoTrue(idVariante)
+                .filter(v -> v.getProducto().getId().equals(idProducto))
                 .orElseThrow(() -> EntidadNoEncontradaException.variante(idVariante));
 
         if (request.operacion() == OperacionStock.AGREGAR) {

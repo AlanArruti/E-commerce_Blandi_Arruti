@@ -1,0 +1,1892 @@
+openapi: 3.0.3
+info:
+  title: E-Commerce API - UTN MdP
+  description: |
+    API RESTful para sistema de e-commerce. Programacion III - UTN Mar del Plata.
+    Grupo 13 — Blandi / Arruti.
+
+    ## Autenticacion
+    Todos los endpoints (salvo los marcados con `security: []`) requieren un
+    token JWT en el header `Authorization: Bearer <token>`.
+
+    ## Roles
+    - **ADMIN**: acceso completo a todos los recursos.
+    - **CLIENTE**: acceso a su propio perfil, pedidos y cotizaciones.
+  version: 3.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: Autenticacion y registro
+  - name: Productos
+    description: Catalogo de productos (ADMIN para escritura, publico para lectura)
+  - name: Variantes
+    description: Variantes de producto — atributos JSONB + stock
+  - name: Categorias
+    description: Categorias de productos
+  - name: Clientes
+    description: Gestion de clientes
+  - name: Administradores
+    description: Gestion de administradores (solo ADMIN)
+  - name: Pedidos
+    description: Gestion de pedidos (ADMIN y CLIENTE propio)
+  - name: Pagos
+    description: Pago directo y Checkout Pro con MercadoPago
+  - name: Envios
+    description: Gestion de envios (solo ADMIN)
+  - name: Facturas
+    description: Consulta de facturas (solo ADMIN)
+  - name: Direcciones
+    description: Direcciones de clientes
+  - name: Cotizacion
+    description: Cotizacion de envio via Correo Argentino
+  - name: Geo
+    description: Paises, provincias y ciudades
+
+paths:
+
+  # ── Auth ────────────────────────────────────────────────────────────────────
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesion
+      description: Autentica al usuario (cliente por email, admin por username) y retorna un JWT.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Autenticacion exitosa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registrar nuevo cliente
+      description: Crea un cliente y retorna un JWT. Envia email de bienvenida.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteRequest'
+      responses:
+        '201':
+          description: Cliente registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  # ── Productos ───────────────────────────────────────────────────────────────
+
+  /productos:
+    get:
+      tags: [Productos]
+      summary: Listar productos (publico, paginado)
+      security: []
+      parameters:
+        - name: categoriaId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: precioMin
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: precioMax
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: search
+          in: query
+          description: Filtra por nombre (case-insensitive, coincidencia parcial)
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Lista paginada de productos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoPageResponse'
+    post:
+      tags: [Productos]
+      summary: Crear producto (ADMIN)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoRequest'
+      responses:
+        '201':
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /productos/{id}:
+    get:
+      tags: [Productos]
+      summary: Obtener producto por ID (publico)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Productos]
+      summary: Actualizar producto (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoRequest'
+      responses:
+        '200':
+          description: Producto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Productos]
+      summary: Eliminar producto — soft delete (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Producto eliminado (soft delete)
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Variantes ───────────────────────────────────────────────────────────────
+
+  /productos/{id}/variantes:
+    get:
+      tags: [Variantes]
+      summary: Listar variantes de un producto (publico)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Lista de variantes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VarianteResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Variantes]
+      summary: Agregar variante (ADMIN)
+      description: >
+        Los atributos son un mapa clave-valor libre (talla, color, material, etc.)
+        almacenados como JSONB en PostgreSQL.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VarianteRequest'
+      responses:
+        '201':
+          description: Variante creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VarianteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /productos/{id}/variantes/{varianteId}:
+    put:
+      tags: [Variantes]
+      summary: Actualizar variante (ADMIN)
+      description: La variante debe pertenecer al producto indicado.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/VarianteId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VarianteRequest'
+      responses:
+        '200':
+          description: Variante actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VarianteResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Variantes]
+      summary: Eliminar variante — soft delete (ADMIN)
+      description: La variante debe pertenecer al producto indicado.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/VarianteId'
+      responses:
+        '204':
+          description: Variante eliminada
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /productos/{id}/variantes/{varianteId}/stock:
+    patch:
+      tags: [Variantes]
+      summary: Ajustar stock de una variante (ADMIN)
+      description: >
+        Proceso critico. Operaciones: AGREGAR incrementa el stock; REDUCIR lo
+        decrementa (falla con 400 si no hay stock suficiente).
+        La variante debe pertenecer al producto indicado.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/VarianteId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockRequest'
+      responses:
+        '200':
+          description: Stock actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VarianteResponse'
+        '400':
+          description: Stock insuficiente o cantidad invalida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Categorias ──────────────────────────────────────────────────────────────
+
+  /categorias:
+    get:
+      tags: [Categorias]
+      summary: Listar categorias (publico)
+      security: []
+      responses:
+        '200':
+          description: Lista de categorias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoriaResponse'
+    post:
+      tags: [Categorias]
+      summary: Crear categoria (ADMIN)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoriaRequest'
+      responses:
+        '201':
+          description: Categoria creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /categorias/{id}:
+    get:
+      tags: [Categorias]
+      summary: Obtener categoria por ID (publico)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Categoria encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriaResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Categorias]
+      summary: Actualizar categoria (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoriaRequest'
+      responses:
+        '200':
+          description: Categoria actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Categorias]
+      summary: Eliminar categoria (ADMIN)
+      description: >
+        Sin `?confirmar=true`: muestra un aviso con la lista de productos afectados sin borrar nada.
+        Con `?confirmar=true`: desvincula los productos (categoria queda null) y elimina la categoria.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: confirmar
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Aviso de impacto (sin confirmar) o confirmacion de eliminacion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EliminacionResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Clientes ────────────────────────────────────────────────────────────────
+
+  /clientes:
+    get:
+      tags: [Clientes]
+      summary: Listar clientes paginado (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Lista paginada de clientes activos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientePageResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /clientes/{id}:
+    get:
+      tags: [Clientes]
+      summary: Obtener cliente por ID (propietario o ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Clientes]
+      summary: Actualizar cliente (propietario o ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteRequest'
+      responses:
+        '200':
+          description: Cliente actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClienteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Clientes]
+      summary: Eliminar cliente — soft delete (propietario o ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Cliente eliminado
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /clientes/{id}/pedidos:
+    get:
+      tags: [Clientes]
+      summary: Historial de pedidos del cliente (propietario o ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: estado
+          in: query
+          schema:
+            $ref: '#/components/schemas/EstadoPedido'
+      responses:
+        '200':
+          description: Pedidos del cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /clientes/{id}/direcciones:
+    get:
+      tags: [Direcciones]
+      summary: Listar direcciones del cliente (propietario o ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Direcciones del cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DireccionResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Direcciones]
+      summary: Agregar direccion al cliente (propietario o ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DireccionRequest'
+      responses:
+        '201':
+          description: Direccion agregada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DireccionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /clientes/{id}/direcciones/{dirId}:
+    delete:
+      tags: [Direcciones]
+      summary: Eliminar direccion del cliente (propietario o ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: dirId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Direccion eliminada
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Administradores ─────────────────────────────────────────────────────────
+
+  /administradores:
+    get:
+      tags: [Administradores]
+      summary: Listar administradores (ADMIN)
+      responses:
+        '200':
+          description: Lista de administradores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdministradorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Administradores]
+      summary: Crear administrador (ADMIN)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdministradorRequest'
+      responses:
+        '201':
+          description: Administrador creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdministradorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /administradores/{id}:
+    get:
+      tags: [Administradores]
+      summary: Obtener administrador por ID (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Administrador encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdministradorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Administradores]
+      summary: Actualizar administrador (ADMIN)
+      description: >
+        Permite cambiar el username y/o la contrasenia.
+        Si el nuevo username ya lo usa otro administrador se devuelve 409.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdministradorRequest'
+      responses:
+        '200':
+          description: Administrador actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdministradorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Administradores]
+      summary: Eliminar administrador — fisicamente (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Administrador eliminado
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Pedidos ─────────────────────────────────────────────────────────────────
+
+  /pedidos:
+    get:
+      tags: [Pedidos]
+      summary: Listar pedidos paginado (ADMIN o CLIENTE)
+      parameters:
+        - name: estado
+          in: query
+          schema:
+            $ref: '#/components/schemas/EstadoPedido'
+        - name: clienteId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Lista paginada de pedidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoPageResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Pedidos]
+      summary: Crear pedido (ADMIN o CLIENTE)
+      description: >
+        Proceso critico. Valida stock de cada variante antes de crear.
+        Estado inicial: PENDIENTE_PAGO.
+        El cliente propietario es quien esta autenticado (si es CLIENTE), o el
+        indicado en `idCliente` (si es ADMIN).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoRequest'
+      responses:
+        '201':
+          description: Pedido creado en estado PENDIENTE_PAGO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoResponse'
+        '400':
+          description: Stock insuficiente o datos invalidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /pedidos/{id}:
+    get:
+      tags: [Pedidos]
+      summary: Obtener pedido por ID (ADMIN o CLIENTE propietario)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Pedido encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Pedidos]
+      summary: Cancelar pedido (ADMIN o CLIENTE propietario)
+      description: >
+        Cancela un pedido. Solo es posible si el estado es
+        PENDIENTE_PAGO, EN_PREPARACION, PAGADO o DESPACHADO.
+        El stock se devuelve solo si el pedido estaba en PAGADO o DESPACHADO
+        (ya que el stock solo se descuenta en el momento del pago).
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Pedido cancelado
+        '400':
+          description: No se puede cancelar en el estado actual (ENTREGADO o ya CANCELADO)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pedidos/{id}/estado:
+    patch:
+      tags: [Pedidos]
+      summary: Cambiar estado del pedido (ADMIN)
+      description: |
+        Transiciones validas:
+        - PENDIENTE_PAGO → EN_PREPARACION
+        - EN_PREPARACION → PAGADO
+        - PENDIENTE_PAGO → CANCELADO
+        - EN_PREPARACION → CANCELADO
+        - DESPACHADO → CANCELADO (devuelve stock)
+
+        Para PAGADO → DESPACHADO usar `POST /pedidos/{id}/envio`.
+        Para DESPACHADO → ENTREGADO usar `PATCH /pedidos/{id}/envio/estado`.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstadoPedidoRequest'
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoResponse'
+        '400':
+          description: Transicion de estado invalida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Pagos ───────────────────────────────────────────────────────────────────
+
+  /pedidos/{id}/pagar:
+    post:
+      tags: [Pagos]
+      summary: Pagar pedido directamente (ADMIN o CLIENTE)
+      description: >
+        Proceso critico. Registra el pago del pedido:
+        descuenta stock de cada variante, genera la Factura y cambia el estado a PAGADO.
+        Solo funciona si el pedido esta en PENDIENTE_PAGO.
+        Envia email con la factura al cliente.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagoRequest'
+      responses:
+        '200':
+          description: Pago registrado y factura generada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoResponse'
+        '400':
+          description: El pedido no esta en estado PENDIENTE_PAGO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pedidos/{id}/iniciar-pago:
+    post:
+      tags: [Pagos]
+      summary: Iniciar pago con MercadoPago Checkout Pro (ADMIN o CLIENTE)
+      description: >
+        Crea una preferencia de pago en MercadoPago y retorna el
+        `preferenceId` y el `initPoint` (URL de pago).
+        El cliente accede a `initPoint` y paga en la pagina de MercadoPago.
+        Una vez confirmado el pago, MP notifica al webhook y el backend
+        procesa automaticamente el pedido.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagoRequest'
+      responses:
+        '200':
+          description: Preferencia creada en MercadoPago
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferenciaResponse'
+        '400':
+          description: El pedido no esta en estado PENDIENTE_PAGO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /webhook/mercadopago:
+    post:
+      tags: [Pagos]
+      summary: Webhook de notificaciones de MercadoPago (publico)
+      description: >
+        Endpoint publico para recibir notificaciones de MercadoPago.
+        Al confirmar el pago verifica con la API de MP, descuenta stock,
+        genera la Factura y cambia el pedido a PAGADO.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Payload de notificacion de MercadoPago
+      responses:
+        '200':
+          description: Notificacion procesada
+        '400':
+          description: Pago no aprobado o payload invalido
+
+  # ── Facturas ────────────────────────────────────────────────────────────────
+
+  /facturas:
+    get:
+      tags: [Facturas]
+      summary: Listar facturas (ADMIN)
+      parameters:
+        - name: clienteId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: tipo
+          in: query
+          schema:
+            $ref: '#/components/schemas/TipoFactura'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Lista paginada de facturas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacturaPageResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /facturas/{id}:
+    get:
+      tags: [Facturas]
+      summary: Obtener factura por ID (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Factura encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacturaResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pedidos/{id}/factura:
+    get:
+      tags: [Facturas]
+      summary: Obtener factura de un pedido (ADMIN o CLIENTE propietario)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Factura del pedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacturaResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: El pedido aun no tiene factura generada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Envios ──────────────────────────────────────────────────────────────────
+
+  /envio:
+    get:
+      tags: [Envios]
+      summary: Listar todos los envios (ADMIN)
+      parameters:
+        - name: estado
+          in: query
+          schema:
+            $ref: '#/components/schemas/EstadoEnvio'
+      responses:
+        '200':
+          description: Lista de envios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnvioResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /envio/{id}:
+    get:
+      tags: [Envios]
+      summary: Obtener envio por ID (ADMIN)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Envio encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvioResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Envios]
+      summary: Eliminar envio (ADMIN)
+      description: >
+        Elimina el envio y revierte el pedido a estado PAGADO.
+        No se puede eliminar si el envio ya fue ENTREGADO.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Envio eliminado, pedido vuelve a PAGADO
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: No se puede eliminar un envio ya ENTREGADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /pedidos/{id}/envio:
+    get:
+      tags: [Envios]
+      summary: Obtener envio de un pedido (ADMIN o CLIENTE propietario)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Envio del pedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvioResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Envios]
+      summary: Crear envio para un pedido (ADMIN)
+      description: >
+        Solo disponible si el pedido esta en PAGADO.
+        Al crear el envio, el pedido pasa a DESPACHADO.
+        Envia email de notificacion al cliente.
+        Falla con 409 si el pedido ya tiene un envio asignado.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvioRequest'
+      responses:
+        '201':
+          description: Envio creado, pedido pasa a DESPACHADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvioResponse'
+        '400':
+          description: El pedido no esta en estado PAGADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: El pedido ya tiene un envio asignado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /pedidos/{id}/envio/estado:
+    patch:
+      tags: [Envios]
+      summary: Actualizar estado del envio (ADMIN)
+      description: |
+        Transiciones validas del envio:
+        - DESPACHADO → EN_CAMINO
+        - EN_CAMINO → ENTREGADO (el pedido tambien pasa a ENTREGADO)
+
+        Envia email de notificacion al cliente en cada cambio.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstadoEnvioRequest'
+      responses:
+        '200':
+          description: Estado del envio actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvioResponse'
+        '400':
+          description: Transicion de estado invalida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Cotizacion ──────────────────────────────────────────────────────────────
+
+  /cotizacion:
+    get:
+      tags: [Cotizacion]
+      summary: Cotizar envio via Correo Argentino (ADMIN o CLIENTE)
+      description: >
+        Calcula el costo de envio desde el CP de origen configurado al CP destino,
+        para un peso dado, consultando la API del Correo Argentino.
+      parameters:
+        - name: codigoPostalDestino
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "7600"
+        - name: peso
+          in: query
+          required: true
+          description: Peso del paquete en gramos
+          schema:
+            type: integer
+            minimum: 1
+            example: 500
+      responses:
+        '200':
+          description: Cotizacion calculada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CotizacionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ── Geo ─────────────────────────────────────────────────────────────────────
+
+  /paises:
+    get:
+      tags: [Geo]
+      summary: Listar paises (publico)
+      security: []
+      responses:
+        '200':
+          description: Lista de paises
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaisResponse'
+
+  /paises/{id}/provincias:
+    get:
+      tags: [Geo]
+      summary: Provincias de un pais (publico)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Provincias del pais
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProvinciaResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /provincias/{id}/ciudades:
+    get:
+      tags: [Geo]
+      summary: Ciudades de una provincia (publico)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Ciudades de la provincia
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CiudadResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ── Components ──────────────────────────────────────────────────────────────
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    VarianteId:
+      name: varianteId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+
+  responses:
+    BadRequest:
+      description: Datos de entrada invalidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: No autenticado — token ausente o invalido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Sin permisos para esta accion
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflicto — dato duplicado o estado inconsistente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+
+    # ── Enums ──
+
+    EstadoPedido:
+      type: string
+      enum:
+        - PENDIENTE_PAGO
+        - EN_PREPARACION
+        - PAGADO
+        - DESPACHADO
+        - ENTREGADO
+        - CANCELADO
+
+    EstadoEnvio:
+      type: string
+      enum:
+        - DESPACHADO
+        - EN_CAMINO
+        - ENTREGADO
+
+    TipoFactura:
+      type: string
+      enum: [A, B, C]
+
+    # ── Auth ──
+
+    LoginRequest:
+      type: object
+      required: [username, contrasenia]
+      properties:
+        username:
+          type: string
+          description: Email del cliente o username del administrador
+          example: cliente@mail.com
+        contrasenia:
+          type: string
+          format: password
+
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiJ9...
+        tipo:
+          type: string
+          example: Bearer
+        username:
+          type: string
+        rol:
+          type: string
+          enum: [CLIENTE, ADMIN]
+
+    # ── Administrador ──
+
+    AdministradorRequest:
+      type: object
+      required: [username, contrasenia]
+      properties:
+        username:
+          type: string
+          maxLength: 50
+          example: admin_ventas
+        contrasenia:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 50
+
+    AdministradorResponse:
+      type: object
+      properties:
+        idAdministrador:
+          type: integer
+          format: int64
+        username:
+          type: string
+
+    # ── Cliente ──
+
+    ClienteRequest:
+      type: object
+      required: [nombre, apellido, dni, email, contrasenia]
+      properties:
+        nombre:
+          type: string
+          maxLength: 50
+          example: Juan
+        apellido:
+          type: string
+          maxLength: 50
+          example: Perez
+        dni:
+          type: string
+          maxLength: 20
+          example: "38123456"
+        email:
+          type: string
+          format: email
+          maxLength: 100
+          example: juan.perez@mail.com
+        contrasenia:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 50
+
+    ClienteResponse:
+      type: object
+      properties:
+        uuidCliente:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        apellido:
+          type: string
+        dni:
+          type: string
+        email:
+          type: string
+        direcciones:
+          type: array
+          items:
+            $ref: '#/components/schemas/DireccionResponse'
+
+    ClientePageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClienteResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    # ── Producto ──
+
+    ProductoRequest:
+      type: object
+      required: [nombre, descripcion, precioBase, categoriaId]
+      properties:
+        nombre:
+          type: string
+          example: Remera basica
+        descripcion:
+          type: string
+        precioBase:
+          type: number
+          format: double
+          minimum: 0
+          example: 4999.99
+        categoriaId:
+          type: integer
+          format: int64
+
+    ProductoResponse:
+      type: object
+      properties:
+        idProducto:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        precio:
+          type: number
+          format: double
+        categoria:
+          $ref: '#/components/schemas/CategoriaResponse'
+        variantes:
+          type: array
+          items:
+            $ref: '#/components/schemas/VarianteResponse'
+
+    ProductoPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductoResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    # ── Variante ──
+
+    VarianteRequest:
+      type: object
+      required: [atributos, stock]
+      properties:
+        atributos:
+          type: object
+          additionalProperties:
+            type: string
+          description: Mapa de atributos dinamicos almacenados como JSONB en PostgreSQL
+          example:
+            talla: M
+            color: Azul
+            material: Algodon
+        stock:
+          type: integer
+          minimum: 0
+          example: 50
+
+    VarianteResponse:
+      type: object
+      properties:
+        idVariante:
+          type: integer
+          format: int64
+        atributos:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            talla: M
+            color: Azul
+        stock:
+          type: integer
+        idProducto:
+          type: integer
+          format: int64
+
+    StockRequest:
+      type: object
+      required: [cantidad, operacion]
+      properties:
+        cantidad:
+          type: integer
+          minimum: 1
+          example: 10
+        operacion:
+          type: string
+          enum: [AGREGAR, REDUCIR]
+          example: AGREGAR
+
+    # ── Categoria ──
+
+    CategoriaRequest:
+      type: object
+      required: [nombre]
+      properties:
+        nombre:
+          type: string
+          example: Indumentaria
+
+    CategoriaResponse:
+      type: object
+      properties:
+        idCategoria:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+
+    EliminacionResponse:
+      type: object
+      properties:
+        mensaje:
+          type: string
+        aviso:
+          type: array
+          items:
+            type: string
+
+    # ── Pedido ──
+
+    PedidoRequest:
+      type: object
+      required: [idCliente, items]
+      properties:
+        idCliente:
+          type: integer
+          format: int64
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ItemPedidoRequest'
+
+    ItemPedidoRequest:
+      type: object
+      required: [idVariante, cantidad]
+      properties:
+        idVariante:
+          type: integer
+          format: int64
+        cantidad:
+          type: integer
+          minimum: 1
+
+    PedidoResponse:
+      type: object
+      properties:
+        idPedido:
+          type: integer
+          format: int64
+        uuidPedido:
+          type: string
+          format: uuid
+        cliente:
+          $ref: '#/components/schemas/ClienteResponse'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemPedidoResponse'
+        estadoPedido:
+          $ref: '#/components/schemas/EstadoPedido'
+        envio:
+          $ref: '#/components/schemas/EnvioResponse'
+        factura:
+          $ref: '#/components/schemas/FacturaResponse'
+
+    ItemPedidoResponse:
+      type: object
+      properties:
+        idItemPedido:
+          type: integer
+          format: int64
+        variante:
+          $ref: '#/components/schemas/VarianteResponse'
+        cantidad:
+          type: integer
+        precioProducto:
+          type: number
+          format: double
+
+    PedidoPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PedidoResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    EstadoPedidoRequest:
+      type: object
+      required: [estadoPedido]
+      properties:
+        estadoPedido:
+          $ref: '#/components/schemas/EstadoPedido'
+
+    # ── Pagos ──
+
+    PagoRequest:
+      type: object
+      required: [tipoFactura]
+      properties:
+        tipoFactura:
+          $ref: '#/components/schemas/TipoFactura'
+
+    PreferenciaResponse:
+      type: object
+      properties:
+        preferenceId:
+          type: string
+          description: ID de preferencia en MercadoPago
+        initPoint:
+          type: string
+          format: uri
+          description: URL de pago en MercadoPago
+
+    # ── Envio ──
+
+    EnvioRequest:
+      type: object
+      required: [idDireccion, fechaSalida, fechaLlegada]
+      properties:
+        idDireccion:
+          type: integer
+          format: int64
+        fechaSalida:
+          type: string
+          format: date
+          example: "2026-07-01"
+        fechaLlegada:
+          type: string
+          format: date
+          example: "2026-07-05"
+
+    EnvioResponse:
+      type: object
+      properties:
+        idEnvio:
+          type: integer
+          format: int64
+        direccion:
+          $ref: '#/components/schemas/DireccionResponse'
+        estado:
+          $ref: '#/components/schemas/EstadoEnvio'
+        fechaSalida:
+          type: string
+          format: date
+        fechaLlegada:
+          type: string
+          format: date
+
+    EstadoEnvioRequest:
+      type: object
+      required: [estado]
+      properties:
+        estado:
+          $ref: '#/components/schemas/EstadoEnvio'
+
+    # ── Factura ──
+
+    FacturaResponse:
+      type: object
+      properties:
+        idFactura:
+          type: integer
+          format: int64
+        tipoFactura:
+          $ref: '#/components/schemas/TipoFactura'
+        precioTotal:
+          type: number
+          format: double
+        idPedido:
+          type: integer
+          format: int64
+
+    FacturaPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacturaResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    # ── Cotizacion ──
+
+    CotizacionResponse:
+      type: object
+      properties:
+        codigoPostalOrigen:
+          type: string
+        codigoPostalDestino:
+          type: string
+        peso:
+          type: integer
+        precioEnvio:
+          type: number
+          format: double
+
+    # ── Direccion ──
+
+    DireccionRequest:
+      type: object
+      required: [nombreCalle, numeroCalle, codigoPostal, idCiudad]
+      properties:
+        nombreCalle:
+          type: string
+          example: Av. Independencia
+        numeroCalle:
+          type: integer
+          example: 1234
+        codigoPostal:
+          type: string
+          example: "7600"
+        idCiudad:
+          type: integer
+          format: int64
+
+    DireccionResponse:
+      type: object
+      properties:
+        idDireccion:
+          type: integer
+          format: int64
+        nombreCalle:
+          type: string
+        numeroCalle:
+          type: integer
+        codigoPostal:
+          type: string
+        ciudad:
+          $ref: '#/components/schemas/CiudadResponse'
+
+    # ── Geo ──
+
+    PaisResponse:
+      type: object
+      properties:
+        idPais:
+          type: integer
+          format: int64
+        nombrePais:
+          type: string
+          example: Argentina
+
+    ProvinciaResponse:
+      type: object
+      properties:
+        idProvincia:
+          type: integer
+          format: int64
+        nombreProvincia:
+          type: string
+          example: Buenos Aires
+        pais:
+          $ref: '#/components/schemas/PaisResponse'
+
+    CiudadResponse:
+      type: object
+      properties:
+        idCiudad:
+          type: integer
+          format: int64
+        nombreCiudad:
+          type: string
+          example: Mar del Plata
+        provincia:
+          $ref: '#/components/schemas/ProvinciaResponse'
+
+    # ── Error ──
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: Producto con id 5 no encontrado.
+        path:
+          type: string
+          example: /api/v1/productos/5

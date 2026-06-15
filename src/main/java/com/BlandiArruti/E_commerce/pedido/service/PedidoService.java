@@ -160,7 +160,7 @@ public class PedidoService {
             throw PedidoNoModificableException.noCancelable(id, estado);
         }
 
-        if (estado == EstadoPedido.EN_PREPARACION || estado == EstadoPedido.PAGADO || estado == EstadoPedido.DESPACHADO) {
+        if (estado == EstadoPedido.PAGADO || estado == EstadoPedido.DESPACHADO) {
             for (ItemPedido item : pedido.getItems()) {
                 Variante variante = item.getVariante();
                 variante.setStock(variante.getStock() + item.getCantidad());
@@ -279,6 +279,14 @@ public class PedidoService {
                     "Transición de estado inválida: " + actual + " → " + nuevo + ".");
         }
 
+        if (nuevo == EstadoPedido.CANCELADO && actual == EstadoPedido.DESPACHADO) {
+            for (ItemPedido item : pedido.getItems()) {
+                Variante variante = item.getVariante();
+                variante.setStock(variante.getStock() + item.getCantidad());
+                varianteRepository.save(variante);
+            }
+        }
+
         pedido.setEstadoPedido(nuevo);
         return pedidoMapper.toResponse(pedidoRepository.save(pedido));
     }
@@ -311,6 +319,10 @@ public class PedidoService {
         if (pedido.getEstadoPedido() != EstadoPedido.PAGADO) {
             throw new EcommerceException(
                     "Solo se puede crear un envío para pedidos en estado PAGADO.");
+        }
+
+        if (envioRepository.findByPedidoId(idPedido).isPresent()) {
+            throw new ConflictoException("El pedido con id " + idPedido + " ya tiene un envío asignado.");
         }
 
         Direccion direccion = direccionRepository.findById(request.idDireccion())
