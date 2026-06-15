@@ -18,6 +18,7 @@ import com.BlandiArruti.E_commerce.enums.TipoFactura;
 import com.BlandiArruti.E_commerce.exception.*;
 import com.BlandiArruti.E_commerce.mercadopago.dto.response.PreferenciaResponse;
 import com.BlandiArruti.E_commerce.mercadopago.service.MercadoPagoService;
+import com.BlandiArruti.E_commerce.notificacion.service.NotificacionService;
 import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import com.BlandiArruti.E_commerce.factura.entity.Factura;
 import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
@@ -59,6 +60,7 @@ public class PedidoService {
     private final EnvioRepository envioRepository;
     private final DireccionRepository direccionRepository;
     private final MercadoPagoService mercadoPagoService;
+    private final NotificacionService notificacionService;
     private final PedidoMapper pedidoMapper;
     private final FacturaMapper facturaMapper;
     private final EnvioMapper envioMapper;
@@ -214,6 +216,8 @@ public class PedidoService {
         pedido.setEstadoPedido(EstadoPedido.PAGADO);
         pedido.setFactura(factura);
         pedidoRepository.save(pedido);
+
+        notificacionService.notificarFacturaGenerada(factura);
     }
 
     public PedidoResponse pagar(Long id, PagoRequest request) {
@@ -248,7 +252,11 @@ public class PedidoService {
 
         pedido.setEstadoPedido(EstadoPedido.PAGADO);
         pedido.setFactura(factura);
-        return pedidoMapper.toResponse(pedidoRepository.save(pedido));
+        PedidoResponse response = pedidoMapper.toResponse(pedidoRepository.save(pedido));
+
+        notificacionService.notificarFacturaGenerada(factura);
+
+        return response;
     }
 
     public PedidoResponse cambiarEstado(Long id, EstadoPedidoRequest request) {
@@ -321,6 +329,8 @@ public class PedidoService {
         pedido.setEnvio(envio);
         pedidoRepository.save(pedido);
 
+        notificacionService.notificarEnvioActualizado(envio);
+
         return envioMapper.toResponse(envio);
     }
 
@@ -351,6 +361,9 @@ public class PedidoService {
             pedidoRepository.save(pedido);
         }
 
-        return envioMapper.toResponse(envioRepository.save(envio));
+        envioRepository.save(envio);
+        notificacionService.notificarEnvioActualizado(envio);
+
+        return envioMapper.toResponse(envio);
     }
 }

@@ -17,6 +17,7 @@ import com.BlandiArruti.E_commerce.exception.DuplicadoException;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
 import com.BlandiArruti.E_commerce.geo.entity.Ciudad;
 import com.BlandiArruti.E_commerce.geo.repository.CiudadRepository;
+import com.BlandiArruti.E_commerce.notificacion.service.NotificacionService;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
 import com.BlandiArruti.E_commerce.pedido.mapper.PedidoMapper;
 import com.BlandiArruti.E_commerce.pedido.repository.PedidoRepository;
@@ -44,6 +45,7 @@ public class ClienteService {
     private final DireccionMapper direccionMapper;
     private final PedidoMapper pedidoMapper;
     private final PasswordEncoder passwordEncoder;
+    private final NotificacionService notificacionService;
 
     private UsuarioDetails getPrincipal() {
         return (UsuarioDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -81,7 +83,11 @@ public class ClienteService {
         }
         Cliente cliente = clienteMapper.toEntity(request);
         cliente.setContrasenia(passwordEncoder.encode(request.contrasenia()));
-        return clienteMapper.toResponse(clienteRepository.save(cliente));
+        cliente = clienteRepository.save(cliente);
+
+        notificacionService.notificarRegistroExitoso(cliente);
+
+        return clienteMapper.toResponse(cliente);
     }
 
     public ClienteResponse actualizar(Long id, ClienteRequest request) {

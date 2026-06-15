@@ -30,6 +30,18 @@ spring:
           time_zone: America/Argentina/Buenos_Aires
     open-in-view: false
 
+  mail:
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 server:
   port: 8080
 
@@ -48,3 +60,6 @@ correo-argentino:
   password-token: ${CORREO_ARGENTINO_PASSWORD_TOKEN:}
   customer-id: ${CORREO_ARGENTINO_CUSTOMER_ID:}
   codigo-postal-origen: "1425"
+
+notificaciones:
+  remitente: ${MAIL_FROM:no-reply@ecommerce-blandi-arruti.com}

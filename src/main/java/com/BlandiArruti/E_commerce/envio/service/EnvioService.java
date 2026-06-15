@@ -13,6 +13,7 @@ import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.exception.ConflictoException;
 import com.BlandiArruti.E_commerce.exception.EcommerceException;
 import com.BlandiArruti.E_commerce.exception.EntidadNoEncontradaException;
+import com.BlandiArruti.E_commerce.notificacion.service.NotificacionService;
 import com.BlandiArruti.E_commerce.pedido.entity.Pedido;
 import com.BlandiArruti.E_commerce.pedido.repository.PedidoRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class EnvioService {
     private final EnvioMapper envioMapper;
     private final PedidoRepository pedidoRepository;
     private final DireccionRepository direccionRepository;
+    private final NotificacionService notificacionService;
 
     @Transactional(readOnly = true)
     public List<EnvioResponse> listarTodos(EstadoEnvio estado) {
@@ -76,6 +78,8 @@ public class EnvioService {
         pedido.setEnvio(envio);
         pedidoRepository.save(pedido);
 
+        notificacionService.notificarEnvioActualizado(envio);
+
         return envioMapper.toResponse(envio);
     }
 
@@ -105,7 +109,10 @@ public class EnvioService {
             pedidoRepository.save(pedido);
         }
 
-        return envioMapper.toResponse(envioRepository.save(envio));
+        envioRepository.save(envio);
+        notificacionService.notificarEnvioActualizado(envio);
+
+        return envioMapper.toResponse(envio);
     }
 
     public void eliminar(Long id) {
