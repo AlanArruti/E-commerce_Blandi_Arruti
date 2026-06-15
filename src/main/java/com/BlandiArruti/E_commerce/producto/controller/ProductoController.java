@@ -5,7 +5,7 @@ import com.BlandiArruti.E_commerce.producto.dto.request.StockRequest;
 import com.BlandiArruti.E_commerce.producto.dto.request.VarianteRequest;
 import com.BlandiArruti.E_commerce.producto.dto.response.ProductoResponse;
 import com.BlandiArruti.E_commerce.producto.dto.response.VarianteResponse;
-import com.BlandiArruti.E_commerce.producto.service.ProductoService;
+import com.BlandiArruti.E_commerce.producto.service.IProductoService;
 import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductoController {
 
-    private final ProductoService productoService;
+    private final IProductoService productoService;
 
     @GetMapping
     public ResponseEntity<PageResponse<ProductoResponse>> listarTodos(

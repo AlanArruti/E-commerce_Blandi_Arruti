@@ -1,0 +1,788 @@
+{
+  "info": {
+    "name": "E-Commerce Blandi & Arruti",
+    "description": "API REST de E-Commerce — TP Final Programación III — UTN Mar del Plata\n\nBase URL: {{baseUrl}}\n\nFlujo básico de uso:\n1. POST /auth/login → guarda el token en {{token}}\n2. Crear producto (ADMIN)\n3. Crear pedido (CLIENTE)\n4. Pagar pedido\n5. Crear envío\n6. Actualizar estado del envío",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "    pm.collectionVariables.set('token', json.token);",
+                  "    console.log('Token guardado.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"contrasenia\": \"admin123\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
+          }
+        },
+        {
+          "name": "Login (Cliente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('token', json.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cliente@mail.com\",\n  \"contrasenia\": \"pass123\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
+          }
+        },
+        {
+          "name": "Registrar Cliente",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Pérez\",\n  \"dni\": \"12345678\",\n  \"email\": \"juan@mail.com\",\n  \"contrasenia\": \"pass123\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Productos",
+      "item": [
+        {
+          "name": "Listar Productos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/productos?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "10"},
+                {"key": "categoriaId", "value": "", "disabled": true},
+                {"key": "precioMin", "value": "", "disabled": true},
+                {"key": "precioMax", "value": "", "disabled": true},
+                {"key": "search", "value": "", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Producto por ID",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/productos/1", "host": ["{{baseUrl}}"], "path": ["productos", "1"]}
+          }
+        },
+        {
+          "name": "Crear Producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Remera Básica\",\n  \"descripcion\": \"Remera de algodón 100%\",\n  \"precioBase\": 5999.99,\n  \"categoriaId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/productos", "host": ["{{baseUrl}}"], "path": ["productos"]}
+          }
+        },
+        {
+          "name": "Actualizar Producto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Remera Premium\",\n  \"descripcion\": \"Remera de algodón orgánico\",\n  \"precioBase\": 7999.99,\n  \"categoriaId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/productos/1", "host": ["{{baseUrl}}"], "path": ["productos", "1"]}
+          }
+        },
+        {
+          "name": "Eliminar Producto",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/productos/1", "host": ["{{baseUrl}}"], "path": ["productos", "1"]}
+          }
+        },
+        {
+          "name": "Listar Variantes de Producto",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/productos/1/variante", "host": ["{{baseUrl}}"], "path": ["productos", "1", "variante"]}
+          }
+        },
+        {
+          "name": "Agregar Variante",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atributos\": {\n    \"talle\": \"M\",\n    \"color\": \"Blanco\"\n  },\n  \"stock\": 50\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/productos/1/variante", "host": ["{{baseUrl}}"], "path": ["productos", "1", "variante"]}
+          }
+        },
+        {
+          "name": "Actualizar Variante",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atributos\": {\n    \"talle\": \"L\",\n    \"color\": \"Negro\"\n  },\n  \"stock\": 30\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/productos/1/variante/1", "host": ["{{baseUrl}}"], "path": ["productos", "1", "variante", "1"]}
+          }
+        },
+        {
+          "name": "Ajustar Stock — Agregar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 20,\n  \"operacion\": \"AGREGAR\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/productos/1/variante/1/stock", "host": ["{{baseUrl}}"], "path": ["productos", "1", "variante", "1", "stock"]}
+          }
+        },
+        {
+          "name": "Ajustar Stock — Reducir",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 5,\n  \"operacion\": \"REDUCIR\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/productos/1/variante/1/stock", "host": ["{{baseUrl}}"], "path": ["productos", "1", "variante", "1", "stock"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categorías",
+      "item": [
+        {
+          "name": "Listar Categorías",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias"],
+              "query": [{"key": "nombre", "value": "", "disabled": true}]
+            }
+          }
+        },
+        {
+          "name": "Buscar Categoría por ID",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/categorias/1", "host": ["{{baseUrl}}"], "path": ["categorias", "1"]}
+          }
+        },
+        {
+          "name": "Crear Categoría",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"nombre\": \"Indumentaria\"\n}"},
+            "url": {"raw": "{{baseUrl}}/categorias", "host": ["{{baseUrl}}"], "path": ["categorias"]}
+          }
+        },
+        {
+          "name": "Actualizar Categoría",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"nombre\": \"Ropa y Accesorios\"\n}"},
+            "url": {"raw": "{{baseUrl}}/categorias/1", "host": ["{{baseUrl}}"], "path": ["categorias", "1"]}
+          }
+        },
+        {
+          "name": "Eliminar Categoría (con aviso)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/categorias/1", "host": ["{{baseUrl}}"], "path": ["categorias", "1"]}
+          }
+        },
+        {
+          "name": "Eliminar Categoría (confirmado)",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/1?confirmar=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias", "1"],
+              "query": [{"key": "confirmar", "value": "true"}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "Listar Clientes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/cliente?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["cliente"],
+              "query": [{"key": "page", "value": "0"}, {"key": "size", "value": "10"}]
+            }
+          }
+        },
+        {
+          "name": "Buscar Cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/cliente/1", "host": ["{{baseUrl}}"], "path": ["cliente", "1"]}
+          }
+        },
+        {
+          "name": "Actualizar Cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"García\",\n  \"dni\": \"12345678\",\n  \"email\": \"juan.garcia@mail.com\",\n  \"contrasenia\": \"nuevaPass123\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/cliente/1", "host": ["{{baseUrl}}"], "path": ["cliente", "1"]}
+          }
+        },
+        {
+          "name": "Eliminar Cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/cliente/1", "host": ["{{baseUrl}}"], "path": ["cliente", "1"]}
+          }
+        },
+        {
+          "name": "Listar Direcciones del Cliente",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/cliente/1/direccion", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "direccion"]}
+          }
+        },
+        {
+          "name": "Agregar Dirección",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreCalle\": \"San Martín\",\n  \"numeroCalle\": \"1234\",\n  \"codigoPostal\": \"7600\",\n  \"idCiudad\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/cliente/1/direccion", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "direccion"]}
+          }
+        },
+        {
+          "name": "Eliminar Dirección",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/cliente/1/direccion/1", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "direccion", "1"]}
+          }
+        },
+        {
+          "name": "Historial de Pedidos del Cliente",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/cliente/1/pedido",
+              "host": ["{{baseUrl}}"],
+              "path": ["cliente", "1", "pedido"],
+              "query": [{"key": "estado", "value": "PENDIENTE_PAGO", "disabled": true}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "Listar Pedidos",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/pedido?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["pedido"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "10"},
+                {"key": "estado", "value": "PENDIENTE_PAGO", "disabled": true},
+                {"key": "clienteId", "value": "1", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Pedido por ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/pedido/1", "host": ["{{baseUrl}}"], "path": ["pedido", "1"]}
+          }
+        },
+        {
+          "name": "Crear Pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"idProducto\": 1,\n      \"idVariante\": 1,\n      \"cantidad\": 2\n    }\n  ]\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/pedido", "host": ["{{baseUrl}}"], "path": ["pedido"]}
+          }
+        },
+        {
+          "name": "Pagar Pedido (directo)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoFactura\": \"B\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/pedido/1/pagar", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "pagar"]}
+          }
+        },
+        {
+          "name": "Iniciar Pago MercadoPago",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoFactura\": \"B\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/pedido/1/iniciar-pago", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "iniciar-pago"]}
+          }
+        },
+        {
+          "name": "Cancelar Pedido",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/pedido/1/cancelar", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "cancelar"]}
+          }
+        },
+        {
+          "name": "Cambiar Estado Pedido (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"EN_PREPARACION\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/pedido/1/estado", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "estado"]}
+          }
+        },
+        {
+          "name": "Obtener Factura del Pedido",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/pedido/1/factura", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "factura"]}
+          }
+        },
+        {
+          "name": "Obtener Envío del Pedido",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/pedido/1/envio", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "envio"]}
+          }
+        },
+        {
+          "name": "Crear Envío para Pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idDireccion\": 1,\n  \"fechaSalida\": \"2026-06-20\",\n  \"fechaLlegada\": \"2026-06-25\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/pedido/1/envio", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "envio"]}
+          }
+        },
+        {
+          "name": "Actualizar Estado del Envío (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"EN_CAMINO\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/pedido/1/envio/estado", "host": ["{{baseUrl}}"], "path": ["pedido", "1", "envio", "estado"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Envíos",
+      "item": [
+        {
+          "name": "Listar Envíos",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/envio",
+              "host": ["{{baseUrl}}"],
+              "path": ["envio"],
+              "query": [{"key": "estado", "value": "DESPACHADO", "disabled": true}]
+            }
+          }
+        },
+        {
+          "name": "Buscar Envío por ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/envio/1", "host": ["{{baseUrl}}"], "path": ["envio", "1"]}
+          }
+        },
+        {
+          "name": "Actualizar Estado del Envío",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"estado\": \"EN_CAMINO\"\n}"},
+            "url": {"raw": "{{baseUrl}}/envio/1/estado", "host": ["{{baseUrl}}"], "path": ["envio", "1", "estado"]}
+          }
+        },
+        {
+          "name": "Eliminar Envío",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/envio/1", "host": ["{{baseUrl}}"], "path": ["envio", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Facturas",
+      "item": [
+        {
+          "name": "Listar Facturas",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/facturas",
+              "host": ["{{baseUrl}}"],
+              "path": ["facturas"],
+              "query": [
+                {"key": "tipo", "value": "B", "disabled": true},
+                {"key": "idPedido", "value": "1", "disabled": true},
+                {"key": "idCliente", "value": "1", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Factura por ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/facturas/1", "host": ["{{baseUrl}}"], "path": ["facturas", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Administradores",
+      "item": [
+        {
+          "name": "Listar Administradores",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/administrador", "host": ["{{baseUrl}}"], "path": ["administrador"]}
+          }
+        },
+        {
+          "name": "Buscar Administrador por ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/administrador/1", "host": ["{{baseUrl}}"], "path": ["administrador", "1"]}
+          }
+        },
+        {
+          "name": "Crear Administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin2\",\n  \"contrasenia\": \"securePass456\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/administrador", "host": ["{{baseUrl}}"], "path": ["administrador"]}
+          }
+        },
+        {
+          "name": "Actualizar Administrador",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_actualizado\",\n  \"contrasenia\": \"newPass789\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/administrador/1", "host": ["{{baseUrl}}"], "path": ["administrador", "1"]}
+          }
+        },
+        {
+          "name": "Eliminar Administrador",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/administrador/1", "host": ["{{baseUrl}}"], "path": ["administrador", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Geografía",
+      "item": [
+        {
+          "name": "Listar Países",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/paises", "host": ["{{baseUrl}}"], "path": ["paises"]}
+          }
+        },
+        {
+          "name": "Provincias por País",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/paises/1/provincias", "host": ["{{baseUrl}}"], "path": ["paises", "1", "provincias"]}
+          }
+        },
+        {
+          "name": "Ciudades por Provincia",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/provincias/1/ciudades", "host": ["{{baseUrl}}"], "path": ["provincias", "1", "ciudades"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cotización de Envío",
+      "item": [
+        {
+          "name": "Cotizar Envío",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/cotizacion?codigoPostalOrigen=7600&codigoPostalDestino=1000&peso=1.5",
+              "host": ["{{baseUrl}}"],
+              "path": ["cotizacion"],
+              "query": [
+                {"key": "codigoPostalOrigen", "value": "7600"},
+                {"key": "codigoPostalDestino", "value": "1000"},
+                {"key": "peso", "value": "1.5"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Carrito",
+      "item": [
+        {
+          "name": "Ver Carrito",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/carrito", "host": ["{{baseUrl}}"], "path": ["carrito"]}
+          }
+        },
+        {
+          "name": "Agregar Item al Carrito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idVariante\": 1,\n  \"cantidad\": 2\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/carrito/item", "host": ["{{baseUrl}}"], "path": ["carrito", "item"]}
+          }
+        },
+        {
+          "name": "Actualizar Cantidad de Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"cantidad\": 3\n}"},
+            "url": {"raw": "{{baseUrl}}/carrito/item/1", "host": ["{{baseUrl}}"], "path": ["carrito", "item", "1"]}
+          }
+        },
+        {
+          "name": "Eliminar Item del Carrito",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/carrito/item/1", "host": ["{{baseUrl}}"], "path": ["carrito", "item", "1"]}
+          }
+        },
+        {
+          "name": "Vaciar Carrito",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/carrito", "host": ["{{baseUrl}}"], "path": ["carrito"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "MercadoPago Webhook",
+      "item": [
+        {
+          "name": "Webhook Notificación MP (simulado)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"payment.updated\",\n  \"data\": {\n    \"id\": \"123456789\"\n  }\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/webhook/mercadopago", "host": ["{{baseUrl}}"], "path": ["webhook", "mercadopago"]}
+          }
+        }
+      ]
+    }
+  ]
+}

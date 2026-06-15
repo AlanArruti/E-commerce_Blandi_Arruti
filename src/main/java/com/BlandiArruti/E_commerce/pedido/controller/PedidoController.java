@@ -11,7 +11,7 @@ import com.BlandiArruti.E_commerce.pedido.dto.request.EstadoPedidoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.request.PagoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.request.PedidoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
-import com.BlandiArruti.E_commerce.pedido.service.PedidoService;
+import com.BlandiArruti.E_commerce.pedido.service.IPedidoService;
 import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PedidoController {
 
-    private final PedidoService pedidoService;
+    private final IPedidoService pedidoService;
 
     @GetMapping
     public ResponseEntity<PageResponse<PedidoResponse>> listarTodos(

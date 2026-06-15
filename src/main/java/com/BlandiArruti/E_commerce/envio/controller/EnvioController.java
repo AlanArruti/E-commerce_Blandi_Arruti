@@ -3,7 +3,7 @@ package com.BlandiArruti.E_commerce.envio.controller;
 import com.BlandiArruti.E_commerce.envio.dto.request.EnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.request.EstadoEnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.response.EnvioResponse;
-import com.BlandiArruti.E_commerce.envio.service.EnvioService;
+import com.BlandiArruti.E_commerce.envio.service.IEnvioService;
 import com.BlandiArruti.E_commerce.enums.EstadoEnvio;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EnvioController {
 
-    private final EnvioService envioService;
+    private final IEnvioService envioService;
 
     @GetMapping
     public ResponseEntity<List<EnvioResponse>> listarTodos(

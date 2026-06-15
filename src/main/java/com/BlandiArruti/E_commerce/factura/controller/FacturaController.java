@@ -2,7 +2,7 @@ package com.BlandiArruti.E_commerce.factura.controller;
 
 import com.BlandiArruti.E_commerce.enums.TipoFactura;
 import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
-import com.BlandiArruti.E_commerce.factura.service.FacturaService;
+import com.BlandiArruti.E_commerce.factura.service.IFacturaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FacturaController {
 
-    private final FacturaService facturaService;
+    private final IFacturaService facturaService;
 
     @GetMapping
     public ResponseEntity<List<FacturaResponse>> listarTodas(

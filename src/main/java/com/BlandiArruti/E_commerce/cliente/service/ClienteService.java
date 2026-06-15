@@ -35,7 +35,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ClienteService {
+public class ClienteService implements IClienteService {
 
     private final ClienteRepository clienteRepository;
     private final DireccionRepository direccionRepository;

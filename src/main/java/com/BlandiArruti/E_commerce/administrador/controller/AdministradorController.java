@@ -2,7 +2,7 @@ package com.BlandiArruti.E_commerce.administrador.controller;
 
 import com.BlandiArruti.E_commerce.administrador.dto.request.AdministradorRequest;
 import com.BlandiArruti.E_commerce.administrador.dto.response.AdministradorResponse;
-import com.BlandiArruti.E_commerce.administrador.service.AdministradorService;
+import com.BlandiArruti.E_commerce.administrador.service.IAdministradorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdministradorController {
 
-    private final AdministradorService administradorService;
+    private final IAdministradorService administradorService;
 
     @GetMapping
     public ResponseEntity<List<AdministradorResponse>> listarTodos() {

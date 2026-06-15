@@ -3,7 +3,7 @@ package com.BlandiArruti.E_commerce.categoria.controller;
 import com.BlandiArruti.E_commerce.categoria.dto.request.CategoriaRequest;
 import com.BlandiArruti.E_commerce.categoria.dto.response.CategoriaResponse;
 import com.BlandiArruti.E_commerce.categoria.dto.response.EliminacionResponse;
-import com.BlandiArruti.E_commerce.categoria.service.CategoriaService;
+import com.BlandiArruti.E_commerce.categoria.service.ICategoriaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoriaController {
 
-    private final CategoriaService categoriaService;
+    private final ICategoriaService categoriaService;
 
     @GetMapping
     public ResponseEntity<List<CategoriaResponse>> listarTodas(

@@ -4,7 +4,7 @@ import com.BlandiArruti.E_commerce.cliente.dto.request.ClienteRequest;
 import com.BlandiArruti.E_commerce.cliente.dto.request.DireccionRequest;
 import com.BlandiArruti.E_commerce.cliente.dto.response.ClienteResponse;
 import com.BlandiArruti.E_commerce.cliente.dto.response.DireccionResponse;
-import com.BlandiArruti.E_commerce.cliente.service.ClienteService;
+import com.BlandiArruti.E_commerce.cliente.service.IClienteService;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
 import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClienteController {
 
-    private final ClienteService clienteService;
+    private final IClienteService clienteService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping

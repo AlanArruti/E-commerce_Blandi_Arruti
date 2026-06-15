@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class AdministradorService {
+public class AdministradorService implements IAdministradorService {
 
     private final AdministradorRepository administradorRepository;
     private final AdministradorMapper administradorMapper;

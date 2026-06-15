@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class FacturaService {
+public class FacturaService implements IFacturaService {
 
     private final FacturaRepository facturaRepository;
     private final FacturaMapper facturaMapper;

@@ -50,7 +50,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class PedidoService {
+public class PedidoService implements IPedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final ClienteRepository clienteRepository;

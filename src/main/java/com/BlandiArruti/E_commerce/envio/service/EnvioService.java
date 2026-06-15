@@ -25,7 +25,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class EnvioService {
+public class EnvioService implements IEnvioService {
 
     private final EnvioRepository envioRepository;
     private final EnvioMapper envioMapper;
