@@ -224,8 +224,8 @@ La colección incluye:
 
 ## Integrantes
 
-| Nombre | Rol en el proyecto |
-|---|-------------|
+| ----------Nombre--------- |
+|-------------|-------------|
 | Alan Arruti | Iara Blandi |
 
 **Carrera:** Tecnicatura Universitaria en Programación — UTN Mar del Plata  
