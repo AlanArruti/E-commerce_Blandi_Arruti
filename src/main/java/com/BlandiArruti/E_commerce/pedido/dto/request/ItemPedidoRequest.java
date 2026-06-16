@@ -7,7 +7,6 @@ public record ItemPedidoRequest(
         @NotNull(message = "El id de producto es obligatorio.")
         Long idProducto,
 
-        @NotNull(message = "El id de variante es obligatorio.")
         Long idVariante,
 
         @NotNull(message = "La cantidad es obligatoria.")

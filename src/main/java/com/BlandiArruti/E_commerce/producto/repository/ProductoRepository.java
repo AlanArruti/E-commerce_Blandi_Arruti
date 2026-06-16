@@ -30,7 +30,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
            "AND (:categoriaId IS NULL OR p.categoria.id = :categoriaId) " +
            "AND (:precioMin IS NULL OR p.precio >= :precioMin) " +
            "AND (:precioMax IS NULL OR p.precio <= :precioMax) " +
-           "AND (:search IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "AND LOWER(p.nombre) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<Producto> buscarConFiltros(@Param("categoriaId") Long categoriaId,
                                     @Param("precioMin") Double precioMin,
                                     @Param("precioMax") Double precioMax,

@@ -33,10 +33,8 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
 
-            // IF_REQUIRED: Spring Security no persiste el SecurityContext en sesión,
-            // pero la sesión Servlet puede existir durante el handshake OAuth2.
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
             .exceptionHandling(ex -> ex

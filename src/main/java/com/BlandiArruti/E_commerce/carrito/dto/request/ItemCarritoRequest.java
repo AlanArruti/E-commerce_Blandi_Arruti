@@ -4,7 +4,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 public record ItemCarritoRequest(
-        @NotNull(message = "El id de variante es obligatorio.")
+        @NotNull(message = "El id de producto es obligatorio.")
+        Long idProducto,
+
         Long idVariante,
 
         @NotNull(message = "La cantidad es obligatoria.")

@@ -118,12 +118,14 @@ public class PedidoService implements IPedidoService {
         for (ItemPedidoRequest itemReq : request.items()) {
             Producto producto = productoRepository.findById(itemReq.idProducto())
                     .orElseThrow(() -> EntidadNoEncontradaException.producto(itemReq.idProducto()));
-            Variante variante = varianteRepository.findById(itemReq.idVariante())
-                    .orElseThrow(() -> EntidadNoEncontradaException.variante(itemReq.idVariante()));
-
-            if (variante.getStock() < itemReq.cantidad()) {
-                throw StockInsuficienteException.stockInsuficiente(
-                        itemReq.idVariante(), variante.getStock(), itemReq.cantidad());
+            Variante variante = null;
+            if (itemReq.idVariante() != null) {
+                variante = varianteRepository.findById(itemReq.idVariante())
+                        .orElseThrow(() -> EntidadNoEncontradaException.variante(itemReq.idVariante()));
+                if (variante.getStock() < itemReq.cantidad()) {
+                    throw StockInsuficienteException.stockInsuficiente(
+                            itemReq.idVariante(), variante.getStock(), itemReq.cantidad());
+                }
             }
             productos.add(producto);
             variantes.add(variante);
@@ -163,8 +165,10 @@ public class PedidoService implements IPedidoService {
         if (estado == EstadoPedido.PAGADO || estado == EstadoPedido.DESPACHADO) {
             for (ItemPedido item : pedido.getItems()) {
                 Variante variante = item.getVariante();
-                variante.setStock(variante.getStock() + item.getCantidad());
-                varianteRepository.save(variante);
+                if (variante != null) {
+                    variante.setStock(variante.getStock() + item.getCantidad());
+                    varianteRepository.save(variante);
+                }
             }
         }
 
@@ -194,12 +198,14 @@ public class PedidoService implements IPedidoService {
 
         for (ItemPedido item : pedido.getItems()) {
             Variante variante = item.getVariante();
-            if (variante.getStock() < item.getCantidad()) {
-                throw StockInsuficienteException.stockInsuficiente(
-                        variante.getId(), variante.getStock(), item.getCantidad());
+            if (variante != null) {
+                if (variante.getStock() < item.getCantidad()) {
+                    throw StockInsuficienteException.stockInsuficiente(
+                            variante.getId(), variante.getStock(), item.getCantidad());
+                }
+                variante.setStock(variante.getStock() - item.getCantidad());
+                varianteRepository.save(variante);
             }
-            variante.setStock(variante.getStock() - item.getCantidad());
-            varianteRepository.save(variante);
         }
 
         double total = pedido.getItems().stream()
@@ -231,12 +237,14 @@ public class PedidoService implements IPedidoService {
 
         for (ItemPedido item : pedido.getItems()) {
             Variante variante = item.getVariante();
-            if (variante.getStock() < item.getCantidad()) {
-                throw StockInsuficienteException.stockInsuficiente(
-                        variante.getId(), variante.getStock(), item.getCantidad());
+            if (variante != null) {
+                if (variante.getStock() < item.getCantidad()) {
+                    throw StockInsuficienteException.stockInsuficiente(
+                            variante.getId(), variante.getStock(), item.getCantidad());
+                }
+                variante.setStock(variante.getStock() - item.getCantidad());
+                varianteRepository.save(variante);
             }
-            variante.setStock(variante.getStock() - item.getCantidad());
-            varianteRepository.save(variante);
         }
 
         double total = pedido.getItems().stream()
@@ -282,8 +290,10 @@ public class PedidoService implements IPedidoService {
         if (nuevo == EstadoPedido.CANCELADO && actual == EstadoPedido.DESPACHADO) {
             for (ItemPedido item : pedido.getItems()) {
                 Variante variante = item.getVariante();
-                variante.setStock(variante.getStock() + item.getCantidad());
-                varianteRepository.save(variante);
+                if (variante != null) {
+                    variante.setStock(variante.getStock() + item.getCantidad());
+                    varianteRepository.save(variante);
+                }
             }
         }
 

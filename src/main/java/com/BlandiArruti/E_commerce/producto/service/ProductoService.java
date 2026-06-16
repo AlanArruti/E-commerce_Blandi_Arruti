@@ -37,7 +37,7 @@ public class ProductoService implements IProductoService {
 
     @Transactional(readOnly = true)
     public PageResponse<ProductoResponse> listarTodos(Long categoriaId, Double precioMin, Double precioMax, String search, Pageable pageable) {
-        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : "";
         return PageResponse.from(
                 productoRepository.buscarConFiltros(categoriaId, precioMin, precioMax, searchParam, pageable)
                         .map(productoMapper::toResponse)

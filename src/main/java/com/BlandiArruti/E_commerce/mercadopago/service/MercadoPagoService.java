@@ -47,8 +47,7 @@ public class MercadoPagoService {
             PreferenceRequest.PreferenceRequestBuilder builder = PreferenceRequest.builder()
                     .items(items)
                     .backUrls(backUrls)
-                    .externalReference(externalReference)
-                    .autoReturn("approved");
+                    .externalReference(externalReference);
 
             String notificationUrl = mercadoPagoProperties.getNotificationUrl();
             if (notificationUrl != null && !notificationUrl.isBlank()) {
@@ -84,8 +83,12 @@ public class MercadoPagoService {
     private PreferenceItemRequest mapItem(ItemPedido item) {
         BigDecimal unitPrice = BigDecimal.valueOf(item.getProducto().getPrecio());
 
+        String itemId = item.getVariante() != null
+                ? item.getVariante().getId().toString()
+                : item.getProducto().getId().toString();
+
         return PreferenceItemRequest.builder()
-                .id(item.getVariante().getId().toString())
+                .id(itemId)
                 .title(item.getProducto().getNombre())
                 .description(item.getProducto().getDescripcion())
                 .quantity(item.getCantidad())

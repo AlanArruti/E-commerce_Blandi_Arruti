@@ -28,8 +28,8 @@ public class ItemCarrito {
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_variante", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "id_variante", nullable = true)
     private Variante variante;
 
     @Column(name = "cantidad", nullable = false)

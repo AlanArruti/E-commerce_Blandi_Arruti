@@ -7,8 +7,8 @@ spring:
       client:
         registration:
           github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
+            client-id: ${GITHUB_CLIENT_ID:OAUTH_DISABLED}
+            client-secret: ${GITHUB_CLIENT_SECRET:OAUTH_DISABLED}
             scope:
               - user:email
               - read:user

@@ -5,7 +5,7 @@ import com.BlandiArruti.E_commerce.auth.dto.response.TokenResponse;
 import com.BlandiArruti.E_commerce.auth.util.JwtUtil;
 import com.BlandiArruti.E_commerce.cliente.dto.request.ClienteRequest;
 import com.BlandiArruti.E_commerce.cliente.dto.response.ClienteResponse;
-import com.BlandiArruti.E_commerce.cliente.service.ClienteService;
+import com.BlandiArruti.E_commerce.cliente.service.IClienteService;
 import com.BlandiArruti.E_commerce.exception.CredencialesInvalidasException;
 import com.BlandiArruti.E_commerce.exception.DemasiadosIntentosException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UsuarioDetailsService usuarioDetailsService;
     private final JwtUtil jwtUtil;
-    private final ClienteService clienteService;
+    private final IClienteService clienteService;
     private final LoginAttemptService loginAttemptService;
 
     public TokenResponse login(LoginRequest request) {

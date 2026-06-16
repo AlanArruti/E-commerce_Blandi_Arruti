@@ -8,6 +8,8 @@ import com.BlandiArruti.E_commerce.cliente.service.IClienteService;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
 import com.BlandiArruti.E_commerce.shared.dto.PageResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Clientes", description = "Gestión de clientes y sus direcciones")
 @RestController
 @RequestMapping("/api/v1/cliente")
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class ClienteController {
 
     private final IClienteService clienteService;
 
+    @Operation(summary = "Listar todos los clientes (solo ADMIN)")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<PageResponse<ClienteResponse>> listarTodos(
@@ -33,40 +37,47 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.listarTodos(PageRequest.of(page, size)));
     }
 
+    @Operation(summary = "Buscar cliente por ID")
     @GetMapping("/{id}")
     public ResponseEntity<ClienteResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.buscarPorId(id));
     }
 
+    @Operation(summary = "Crear cliente (solo ADMIN)")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ClienteResponse> crear(@Valid @RequestBody ClienteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.crear(request));
     }
 
+    @Operation(summary = "Actualizar cliente")
     @PutMapping("/{id}")
     public ResponseEntity<ClienteResponse> actualizar(@PathVariable Long id,
                                                       @Valid @RequestBody ClienteRequest request) {
         return ResponseEntity.ok(clienteService.actualizar(id, request));
     }
 
+    @Operation(summary = "Dar de baja cliente (soft delete)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         clienteService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Listar direcciones del cliente")
     @GetMapping("/{id}/direccion")
     public ResponseEntity<List<DireccionResponse>> listarDirecciones(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.listarDirecciones(id));
     }
 
+    @Operation(summary = "Agregar dirección al cliente")
     @PostMapping("/{id}/direccion")
     public ResponseEntity<DireccionResponse> agregarDireccion(@PathVariable Long id,
                                                               @Valid @RequestBody DireccionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.agregarDireccion(id, request));
     }
 
+    @Operation(summary = "Eliminar dirección del cliente")
     @DeleteMapping("/{idCliente}/direccion/{idDireccion}")
     public ResponseEntity<Void> eliminarDireccion(@PathVariable Long idCliente,
                                                   @PathVariable Long idDireccion) {
@@ -74,6 +85,7 @@ public class ClienteController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Historial de pedidos del cliente", description = "Filtrable por estado.")
     @GetMapping("/{id}/pedido")
     public ResponseEntity<List<PedidoResponse>> historialPedidos(@PathVariable Long id,
                                                                  @RequestParam(required = false) EstadoPedido estado) {

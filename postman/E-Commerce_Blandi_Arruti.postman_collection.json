@@ -42,7 +42,7 @@
             "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"admin\",\n  \"contrasenia\": \"admin123\"\n}"
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
             },
             "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
           }
@@ -66,7 +66,7 @@
             "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"cliente@mail.com\",\n  \"contrasenia\": \"pass123\"\n}"
+              "raw": "{\n  \"username\": \"cliente@mail.com\",\n  \"password\": \"pass123\"\n}"
             },
             "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
           }
@@ -719,7 +719,7 @@
           "request": {
             "method": "GET",
             "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
-            "url": {"raw": "{{baseUrl}}/carrito", "host": ["{{baseUrl}}"], "path": ["carrito"]}
+            "url": {"raw": "{{baseUrl}}/cliente/1/carrito", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "carrito"]}
           }
         },
         {
@@ -732,21 +732,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"idVariante\": 1,\n  \"cantidad\": 2\n}"
+              "raw": "{\n  \"idProducto\": 1,\n  \"idVariante\": 1,\n  \"cantidad\": 2\n}"
             },
-            "url": {"raw": "{{baseUrl}}/carrito/item", "host": ["{{baseUrl}}"], "path": ["carrito", "item"]}
+            "url": {"raw": "{{baseUrl}}/cliente/1/carrito/items", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "carrito", "items"]}
           }
         },
         {
           "name": "Actualizar Cantidad de Item",
           "request": {
-            "method": "PATCH",
+            "method": "PUT",
             "header": [
               {"key": "Content-Type", "value": "application/json"},
               {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {"mode": "raw", "raw": "{\n  \"cantidad\": 3\n}"},
-            "url": {"raw": "{{baseUrl}}/carrito/item/1", "host": ["{{baseUrl}}"], "path": ["carrito", "item", "1"]}
+            "url": {"raw": "{{baseUrl}}/cliente/1/carrito/items/1", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "carrito", "items", "1"]}
           }
         },
         {
@@ -754,7 +754,7 @@
           "request": {
             "method": "DELETE",
             "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
-            "url": {"raw": "{{baseUrl}}/carrito/item/1", "host": ["{{baseUrl}}"], "path": ["carrito", "item", "1"]}
+            "url": {"raw": "{{baseUrl}}/cliente/1/carrito/items/1", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "carrito", "items", "1"]}
           }
         },
         {
@@ -762,7 +762,15 @@
           "request": {
             "method": "DELETE",
             "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
-            "url": {"raw": "{{baseUrl}}/carrito", "host": ["{{baseUrl}}"], "path": ["carrito"]}
+            "url": {"raw": "{{baseUrl}}/cliente/1/carrito", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "carrito"]}
+          }
+        },
+        {
+          "name": "Checkout (crear pedido desde carrito)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/cliente/1/carrito/checkout", "host": ["{{baseUrl}}"], "path": ["cliente", "1", "carrito", "checkout"]}
           }
         }
       ]
@@ -777,7 +785,7 @@
             "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"action\": \"payment.updated\",\n  \"data\": {\n    \"id\": \"123456789\"\n  }\n}"
+              "raw": "{\n  \"type\": \"payment\",\n  \"action\": \"payment.updated\",\n  \"data\": {\n    \"id\": \"123456789\"\n  }\n}"
             },
             "url": {"raw": "{{baseUrl}}/webhook/mercadopago", "host": ["{{baseUrl}}"], "path": ["webhook", "mercadopago"]}
           }

@@ -32,8 +32,8 @@ public class ItemPedido {
         }
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_variante", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "id_variante", nullable = true)
     private Variante variante;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

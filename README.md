@@ -185,7 +185,7 @@ Copiar `.env.example` como `.env` y completar con los valores reales.
 
 ## Tests
 
-El proyecto incluye **68 tests unitarios** para los 5 servicios críticos, usando JUnit 5, Mockito y AssertJ.
+El proyecto incluye **112 tests unitarios** distribuidos en 12 clases de test, usando JUnit 5, Mockito y AssertJ.
 
 ```bash
 # Ejecutar todos los tests
@@ -196,11 +196,18 @@ El proyecto incluye **68 tests unitarios** para los 5 servicios críticos, usand
 ```
 
 Cobertura de tests unitarios:
-- `PedidoServiceTest` — 14 tests (cancelación, pago, envío, estado)
+- `AuthServiceTest` — 5 tests (login OK, credenciales inválidas, cuenta bloqueada, cuenta desactivada, registro)
+- `LoginAttemptServiceTest` — 8 tests (contador de intentos, bloqueo a los 5 fallos, reset tras login exitoso)
+- `CarritoServiceTest` — 13 tests (obtener/crear carrito, agregar/fusionar ítems, stock, actualizar, eliminar, checkout)
+- `CategoriaServiceTest` — 12 tests (listar con/sin filtro, crear, duplicado, actualizar, eliminar con confirmación)
+- `WebhookControllerTest` — 7 tests (tipos inválidos, pago aprobado/rechazado, reference malformada)
+- `PedidoServiceTest` — 14 tests (cancelación, pago, envío, estado, confirmación MP)
 - `ProductoServiceTest` — 11 tests (variantes, stock, ownership)
 - `ClienteServiceTest` — 12 tests (CRUD, owner-check, acceso)
 - `EnvioServiceTest` — 10 tests (ciclo de vida del envío)
 - `AdministradorServiceTest` — 11 tests (CRUD, duplicados)
+- `CotizacionEnvioServiceTest` — 5 tests (cotización Correo Argentino)
+- `NotificacionServiceTest` — 4 tests (emails, fallo de conexión)
 
 ---
 
@@ -218,9 +225,8 @@ La colección incluye:
 ## Integrantes
 
 | Nombre | Rol en el proyecto |
-|---|---|
-| Alan Arruti | Backend — Seguridad, JWT, MercadoPago, Envío |
-| [Compañera] | Backend — Carrito, Filtros de productos, Factura |
+|---|-------------|
+| Alan Arruti | Iara Blandi |
 
 **Carrera:** Tecnicatura Universitaria en Programación — UTN Mar del Plata  
 **Materia:** Programación III  

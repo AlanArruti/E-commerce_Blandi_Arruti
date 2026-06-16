@@ -18,8 +18,10 @@ import com.BlandiArruti.E_commerce.exception.StockInsuficienteException;
 import com.BlandiArruti.E_commerce.pedido.dto.request.ItemPedidoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.request.PedidoRequest;
 import com.BlandiArruti.E_commerce.pedido.dto.response.PedidoResponse;
-import com.BlandiArruti.E_commerce.pedido.service.PedidoService;
+import com.BlandiArruti.E_commerce.pedido.service.IPedidoService;
+import com.BlandiArruti.E_commerce.producto.entity.Producto;
 import com.BlandiArruti.E_commerce.producto.entity.Variante;
+import com.BlandiArruti.E_commerce.producto.repository.ProductoRepository;
 import com.BlandiArruti.E_commerce.producto.repository.VarianteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,9 +39,10 @@ public class CarritoService {
     private final CarritoRepository carritoRepository;
     private final ItemCarritoRepository itemCarritoRepository;
     private final ClienteRepository clienteRepository;
+    private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final CarritoMapper carritoMapper;
-    private final PedidoService pedidoService;
+    private final IPedidoService pedidoService;
 
     @Transactional(readOnly = true)
     public CarritoResponse obtenerCarrito(Long idCliente) {
@@ -49,22 +52,40 @@ public class CarritoService {
     public CarritoResponse agregarItem(Long idCliente, ItemCarritoRequest request) {
         Carrito carrito = obtenerOCrearCarrito(idCliente);
 
-        Variante variante = varianteRepository.findByIdAndActivoTrue(request.idVariante())
-                .orElseThrow(() -> EntidadNoEncontradaException.variante(request.idVariante()));
+        Variante variante;
+        Producto producto;
 
-        ItemCarrito item = itemCarritoRepository
-                .findByCarritoIdAndVarianteId(carrito.getId(), variante.getId())
-                .orElse(null);
+        if (request.idVariante() != null) {
+            variante = varianteRepository.findByIdAndActivoTrue(request.idVariante())
+                    .orElseThrow(() -> EntidadNoEncontradaException.variante(request.idVariante()));
+            producto = variante.getProducto();
+        } else {
+            producto = productoRepository.findByIdAndActivoTrue(request.idProducto())
+                    .orElseThrow(() -> EntidadNoEncontradaException.producto(request.idProducto()));
+            List<Variante> variantes = varianteRepository.findByProductoIdAndActivoTrue(request.idProducto());
+            if (variantes.size() > 1) {
+                throw new ConflictoException(
+                        "El producto '" + producto.getNombre() + "' tiene múltiples variantes. Indicá el idVariante.");
+            }
+            variante = variantes.isEmpty() ? null : variantes.get(0);
+        }
+
+        ItemCarrito item = (variante != null)
+                ? itemCarritoRepository.findByCarritoIdAndVarianteId(carrito.getId(), variante.getId()).orElse(null)
+                : itemCarritoRepository.findByCarritoIdAndProductoIdAndVarianteIsNull(carrito.getId(), producto.getId()).orElse(null);
 
         int cantidadFinal = (item != null ? item.getCantidad() : 0) + request.cantidad();
-        validarStock(variante, cantidadFinal);
+
+        if (variante != null) {
+            validarStock(variante, cantidadFinal);
+        }
 
         if (item != null) {
             item.setCantidad(cantidadFinal);
         } else {
             item = ItemCarrito.builder()
                     .carrito(carrito)
-                    .producto(variante.getProducto())
+                    .producto(producto)
                     .variante(variante)
                     .cantidad(cantidadFinal)
                     .build();
@@ -115,7 +136,7 @@ public class CarritoService {
         List<ItemPedidoRequest> items = carrito.getItems().stream()
                 .map(item -> new ItemPedidoRequest(
                         item.getProducto().getId(),
-                        item.getVariante().getId(),
+                        item.getVariante() != null ? item.getVariante().getId() : null,
                         item.getCantidad()))
                 .toList();
 
