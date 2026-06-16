@@ -1,6 +1,7 @@
 package com.BlandiArruti.E_commerce.pedido.entity;
 
 import com.BlandiArruti.E_commerce.cliente.entity.Cliente;
+import com.BlandiArruti.E_commerce.cliente.entity.Direccion;
 import com.BlandiArruti.E_commerce.envio.entity.Envio;
 import com.BlandiArruti.E_commerce.enums.EstadoPedido;
 import com.BlandiArruti.E_commerce.factura.entity.Factura;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"cliente", "items", "envio", "factura"})
+@ToString(exclude = {"cliente", "items", "envio", "factura", "direccionEnvio"})
 
 @Entity
 @Table(name = "pedidos")
@@ -38,6 +39,10 @@ public class Pedido {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_direccion_envio")
+    private Direccion direccionEnvio;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

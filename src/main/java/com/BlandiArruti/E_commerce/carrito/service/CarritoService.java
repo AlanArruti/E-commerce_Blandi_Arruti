@@ -126,7 +126,7 @@ public class CarritoService {
         carritoRepository.save(carrito);
     }
 
-    public PedidoResponse checkout(Long idCliente) {
+    public PedidoResponse checkout(Long idCliente, Long idDireccion) {
         Carrito carrito = obtenerOCrearCarrito(idCliente);
 
         if (carrito.getItems().isEmpty()) {
@@ -140,7 +140,7 @@ public class CarritoService {
                         item.getCantidad()))
                 .toList();
 
-        PedidoResponse pedido = pedidoService.crear(new PedidoRequest(idCliente, items), getPrincipal());
+        PedidoResponse pedido = pedidoService.crear(new PedidoRequest(idCliente, idDireccion, items), getPrincipal());
 
         carrito.getItems().clear();
         carritoRepository.save(carrito);

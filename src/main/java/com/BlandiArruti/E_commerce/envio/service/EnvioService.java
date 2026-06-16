@@ -1,7 +1,6 @@
 package com.BlandiArruti.E_commerce.envio.service;
 
 import com.BlandiArruti.E_commerce.cliente.entity.Direccion;
-import com.BlandiArruti.E_commerce.cliente.repository.DireccionRepository;
 import com.BlandiArruti.E_commerce.envio.dto.request.EnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.request.EstadoEnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.response.EnvioResponse;
@@ -30,7 +29,6 @@ public class EnvioService implements IEnvioService {
     private final EnvioRepository envioRepository;
     private final EnvioMapper envioMapper;
     private final PedidoRepository pedidoRepository;
-    private final DireccionRepository direccionRepository;
     private final NotificacionService notificacionService;
 
     @Transactional(readOnly = true)
@@ -62,8 +60,10 @@ public class EnvioService implements IEnvioService {
             throw new ConflictoException("El pedido con id " + idPedido + " ya tiene un envío asignado.");
         }
 
-        Direccion direccion = direccionRepository.findById(request.idDireccion())
-                .orElseThrow(() -> EntidadNoEncontradaException.direccion(request.idDireccion()));
+        Direccion direccion = pedido.getDireccionEnvio();
+        if (direccion == null) {
+            throw new EcommerceException("El pedido no tiene dirección de envío. El cliente debe indicarla al hacer el checkout.");
+        }
 
         Envio envio = Envio.builder()
                 .pedido(pedido)

@@ -1,6 +1,7 @@
 package com.BlandiArruti.E_commerce.carrito.controller;
 
 import com.BlandiArruti.E_commerce.carrito.dto.request.CantidadCarritoRequest;
+import com.BlandiArruti.E_commerce.carrito.dto.request.CheckoutRequest;
 import com.BlandiArruti.E_commerce.carrito.dto.request.ItemCarritoRequest;
 import com.BlandiArruti.E_commerce.carrito.dto.response.CarritoResponse;
 import com.BlandiArruti.E_commerce.carrito.service.CarritoService;
@@ -56,9 +57,10 @@ public class CarritoController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Confirmar pedido desde el carrito", description = "Crea el pedido con todos los ítems del carrito y lo vacía.")
+    @Operation(summary = "Confirmar pedido desde el carrito", description = "Crea el pedido con todos los ítems del carrito y lo vacía. El cliente indica la dirección de envío.")
     @PostMapping("/checkout")
-    public ResponseEntity<PedidoResponse> checkout(@PathVariable Long idCliente) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(carritoService.checkout(idCliente));
+    public ResponseEntity<PedidoResponse> checkout(@PathVariable Long idCliente,
+                                                    @RequestBody CheckoutRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(carritoService.checkout(idCliente, request.idDireccion()));
     }
 }

@@ -96,21 +96,25 @@ Base URL: `http://localhost:8080/api/v1`
 |---|---|---|---|
 | `POST` | `/auth/login` | Autenticación — devuelve JWT | Público |
 | `POST` | `/auth/register` | Registro de cliente | Público |
-| `GET` | `/productos` | Listar productos (filtros: categoría, precio, búsqueda) | Público |
-| `GET` | `/productos/{id}` | Detalle de producto | Público |
-| `POST` | `/productos` | Crear producto | ADMIN |
-| `PATCH` | `/productos/{id}/variantes/{vid}/stock` | Ajustar stock | ADMIN |
+| `GET` | `/producto` | Listar productos (filtros: categoría, precio, búsqueda) | Público |
+| `GET` | `/producto/{id}` | Detalle de producto | Público |
+| `POST` | `/producto` | Crear producto | ADMIN |
+| `PATCH` | `/producto/{id}/variante/{vid}/stock` | Ajustar stock | ADMIN |
 | `GET` | `/categorias` | Listar categorías | Público |
-| `POST` | `/pedidos` | Crear pedido | CLIENTE / ADMIN |
-| `PATCH` | `/pedidos/{id}/pagar` | Pagar directamente (genera factura) | CLIENTE / ADMIN |
-| `POST` | `/pedidos/{id}/iniciar-pago` | Iniciar pago con MercadoPago | CLIENTE / ADMIN |
+| `GET` | `/cliente/{id}` | Ver perfil del cliente | CLIENTE / ADMIN |
+| `POST` | `/cliente/{id}/direccion` | Agregar dirección de envío | CLIENTE / ADMIN |
+| `GET` | `/cliente/{id}/pedido` | Historial de pedidos del cliente | CLIENTE / ADMIN |
+| `GET` | `/cliente/{id}/carrito` | Ver carrito | CLIENTE / ADMIN |
+| `POST` | `/cliente/{id}/carrito/items` | Agregar ítem al carrito | CLIENTE / ADMIN |
+| `POST` | `/cliente/{id}/carrito/checkout` | Crear pedido desde el carrito | CLIENTE / ADMIN |
+| `PATCH` | `/pedido/{id}/pagar` | Pagar directamente (genera factura) | CLIENTE / ADMIN |
+| `POST` | `/pedido/{id}/iniciar-pago` | Iniciar pago con MercadoPago | CLIENTE / ADMIN |
 | `POST` | `/webhook/mercadopago` | Confirmación de pago MP | Público |
-| `PATCH` | `/pedidos/{id}/cancelar` | Cancelar pedido | CLIENTE / ADMIN |
-| `PATCH` | `/pedidos/{id}/estado` | Cambiar estado (admin) | ADMIN |
-| `POST` | `/pedidos/{id}/envio` | Crear envío para pedido PAGADO | ADMIN |
-| `PATCH` | `/envio/{id}/estado` | Avanzar estado del envío | ADMIN |
-| `GET` | `/clientes/{id}/pedidos` | Historial de pedidos del cliente | CLIENTE / ADMIN |
-| `GET` | `/facturas` | Listar facturas (filtros: tipo, pedido, cliente) | ADMIN |
+| `PATCH` | `/pedido/{id}/cancelar` | Cancelar pedido | CLIENTE / ADMIN |
+| `PATCH` | `/pedido/{id}/estado` | Cambiar estado manualmente | ADMIN |
+| `POST` | `/pedido/{id}/envio` | Crear envío para pedido PAGADO | ADMIN |
+| `PATCH` | `/pedido/{id}/envio/estado` | Avanzar estado del envío | ADMIN |
+| `GET` | `/factura` | Listar facturas (filtros: tipo, pedido, cliente) | ADMIN |
 | `GET` | `/cotizacion` | Cotizar envío (Correo Argentino) | CLIENTE / ADMIN |
 
 Documentación interactiva completa disponible en: `http://localhost:8080/swagger-ui.html`

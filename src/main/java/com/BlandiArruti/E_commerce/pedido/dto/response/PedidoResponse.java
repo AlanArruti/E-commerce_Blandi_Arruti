@@ -8,6 +8,7 @@ import com.BlandiArruti.E_commerce.factura.dto.response.FacturaResponse;
 import java.util.List;
 
 public record PedidoResponse(
+        Long id,
         String uuidPedido,
         ClienteResponse cliente,
         List<ItemPedidoResponse> items,

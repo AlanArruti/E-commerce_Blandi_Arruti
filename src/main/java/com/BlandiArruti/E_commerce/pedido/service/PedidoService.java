@@ -131,9 +131,16 @@ public class PedidoService implements IPedidoService {
             variantes.add(variante);
         }
 
+        Direccion direccionEnvio = null;
+        if (request.idDireccion() != null) {
+            direccionEnvio = direccionRepository.findById(request.idDireccion())
+                    .orElseThrow(() -> EntidadNoEncontradaException.direccion(request.idDireccion()));
+        }
+
         Pedido pedido = Pedido.builder()
                 .cliente(cliente)
                 .estadoPedido(EstadoPedido.PENDIENTE_PAGO)
+                .direccionEnvio(direccionEnvio)
                 .build();
 
         for (int i = 0; i < request.items().size(); i++) {
@@ -335,8 +342,10 @@ public class PedidoService implements IPedidoService {
             throw new ConflictoException("El pedido con id " + idPedido + " ya tiene un envío asignado.");
         }
 
-        Direccion direccion = direccionRepository.findById(request.idDireccion())
-                .orElseThrow(() -> EntidadNoEncontradaException.direccion(request.idDireccion()));
+        Direccion direccion = pedido.getDireccionEnvio();
+        if (direccion == null) {
+            throw new EcommerceException("El pedido no tiene dirección de envío. El cliente debe indicarla al hacer el checkout.");
+        }
 
         Envio envio = Envio.builder()
                 .pedido(pedido)

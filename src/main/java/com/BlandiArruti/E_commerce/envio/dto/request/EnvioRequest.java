@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record EnvioRequest(
-        @NotNull(message = "El id de dirección es obligatorio.")
-        Long idDireccion,
-
         @NotNull(message = "La fecha de salida es obligatoria.")
         LocalDate fechaSalida,
 

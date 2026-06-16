@@ -1,0 +1,184 @@
+========================================
+DEMO E-COMMERCE BLANDI & ARRUTI
+========================================
+
+NOCHE ANTERIOR
+--------------
+docker compose down -v
+docker compose build
+docker compose up
+
+DIA DE LA EXPO
+--------------
+Terminal 1: ngrok http 8080
+Terminal 2: docker compose up
+
+Abrir:
+  - http://localhost:8080/swagger-ui.html
+  - https://mailtrap.io/inboxes (My Sandbox)
+
+
+CREDENCIALES
+------------
+admin / admin123
+juan@mail.com / password123
+maria@mail.com / password123
+pedro@mail.com / password123
+
+
+PRODUCTOS (DataLoader)
+----------------------
+ID 1 - Laptop         $999.99  cat=1 electronica  -> variante id=1 (32GB Negro), id=2 (16GB Plata)
+ID 2 - Smartphone     $699.99  cat=1 electronica  -> sin variante
+ID 3 - Remera basica  $4999.99 cat=2 indumentaria -> variante id=3, id=4, id=5
+ID 4 - Silla gamer    $199.99  cat=3 hogar        -> variante id=6
+ID 5 - Pelota futbol  $89.99   cat=4 deportes     -> sin variante
+
+CATEGORIAS
+----------
+id=1 Electronica
+id=2 Indumentaria
+id=3 Hogar
+id=4 Deportes
+
+
+========================================
+FLUJO DEMO
+========================================
+
+========== PARTE 1: CLIENTE ==========
+
+--- PASO 1: REGISTRAR CLIENTE (EMAIL bienvenida) ---
+POST /api/v1/auth/register
+{
+  "nombre": "Ana",
+  "apellido": "Garcia",
+  "dni": "30123456",
+  "email": "ana@demo.com",
+  "contrasenia": "password123"
+}
+-> revisar Mailtrap: Bienvenida
+
+
+--- PASO 2: LOGIN CLIENTE ---
+POST /api/v1/auth/login
+{
+  "username": "ana@demo.com",
+  "password": "password123"
+}
+-> copiar token -> Authorize en Swagger (pegar sin "Bearer")
+-> anotar el id de Ana (probablemente 6)
+
+
+--- PASO 3: AGREGAR DIRECCION ---
+POST /api/v1/cliente/6/direccion   (reemplazar 6 por id de Ana)
+{
+  "nombreCalle": "Av. Colon",
+  "numeroCalle": 1234,
+  "codigoPostal": "7600",
+  "idCiudad": 81
+}
+-> anotar idDireccion de la respuesta
+(idCiudad 81 = Mar del Plata)
+
+
+--- PASO 4: VER PRODUCTOS (filtros) ---
+GET /api/v1/producto  (sin parametros = todos)
+
+Filtros para mostrar de a uno:
+  search=laptop          -> muestra solo Laptop
+  categoriaId=1          -> muestra Laptop + Smartphone
+  precioMax=700          -> muestra Smartphone, Silla, Pelota
+  precioMin=500          -> muestra Laptop, Smartphone, Remera
+
+
+--- PASO 5: AGREGAR AL CARRITO ---
+POST /api/v1/cliente/6/carrito/items   (llamar dos veces)
+
+Smartphone (sin variante):
+{
+  "idProducto": 2,
+  "cantidad": 1
+}
+
+Laptop (con variante):
+{
+  "idProducto": 1,
+  "idVariante": 1,
+  "cantidad": 1
+}
+
+
+--- PASO 6: VER CARRITO ---
+GET /api/v1/cliente/6/carrito
+
+
+--- PASO 7: CHECKOUT ---
+POST /api/v1/cliente/6/carrito/checkout
+-> anotar el "id" de la respuesta (ese es el idPedido)
+
+
+--- PASO 8: PAGAR (EMAIL factura) ---
+PATCH /api/v1/pedido/{idPedido}/pagar
+{
+  "tipoFactura": "A"
+}
+-> revisar Mailtrap: Factura generada
+
+[opcional] mostrar MercadoPago antes de pagar:
+POST /api/v1/pedido/{idPedido}/iniciar-pago
+{
+  "tipoFactura": "A"
+}
+-> devuelve initPoint, abrir en navegador para mostrar la pagina de MP
+
+
+========== PARTE 2: ADMIN ==========
+
+--- PASO 9: LOGIN ADMIN ---
+POST /api/v1/auth/login
+{
+  "username": "admin",
+  "password": "admin123"
+}
+-> Authorize con token de admin
+
+
+--- PASO 10: CREAR ENVIO (EMAIL despachado) ---
+POST /api/v1/pedido/{idPedido}/envio
+{
+  "idDireccion": 1,
+  "fechaSalida": "2026-06-17",
+  "fechaLlegada": "2026-06-20"
+}
+-> revisar Mailtrap: Envio DESPACHADO
+
+
+--- PASO 11: ACTUALIZAR ESTADO ENVIO (EMAIL en camino) ---
+PATCH /api/v1/pedido/{idPedido}/envio/estado
+{
+  "estado": "EN_CAMINO"
+}
+-> revisar Mailtrap: Envio EN_CAMINO
+
+
+--- PASO 12: VER PEDIDO COMPLETO ---
+GET /api/v1/pedido/{idPedido}
+(muestra todo: cliente, items, factura, envio)
+
+
+========================================
+EMAILS EN MAILTRAP AL FINAL
+========================================
+1. Bienvenida            -> registro
+2. Factura generada      -> pago
+3. Envio DESPACHADO      -> crear envio
+4. Envio EN_CAMINO       -> actualizar estado
+
+
+========================================
+SI ALGO FALLA
+========================================
+401 en Swagger    -> re-login, pegar token nuevo sin "Bearer"
+email no llega    -> esperar 10 seg, revisar Mailtrap inbox
+DB con datos raros -> docker compose down -v && docker compose up

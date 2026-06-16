@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {ClienteMapper.class, ItemPedidoMapper.class, EnvioMapper.class, FacturaMapper.class})
 public interface PedidoMapper {
 
+    @Mapping(source = "id", target = "id")
     @Mapping(source = "uuid", target = "uuidPedido")
     @Mapping(source = "estadoPedido", target = "estado")
     @Mapping(source = "items", target = "items")
