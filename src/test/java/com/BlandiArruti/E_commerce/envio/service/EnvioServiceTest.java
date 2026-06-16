@@ -1,7 +1,6 @@
 package com.BlandiArruti.E_commerce.envio.service;
 
 import com.BlandiArruti.E_commerce.cliente.entity.Direccion;
-import com.BlandiArruti.E_commerce.cliente.repository.DireccionRepository;
 import com.BlandiArruti.E_commerce.envio.dto.request.EnvioRequest;
 import com.BlandiArruti.E_commerce.envio.dto.request.EstadoEnvioRequest;
 import com.BlandiArruti.E_commerce.envio.entity.Envio;
@@ -35,7 +34,6 @@ class EnvioServiceTest {
     @Mock EnvioRepository envioRepository;
     @Mock EnvioMapper envioMapper;
     @Mock PedidoRepository pedidoRepository;
-    @Mock DireccionRepository direccionRepository;
     @Mock NotificacionService notificacionService;
 
     @InjectMocks
@@ -50,7 +48,7 @@ class EnvioServiceTest {
         when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
 
         assertThatThrownBy(() ->
-                envioService.crear(1L, new EnvioRequest(1L, LocalDate.now(), LocalDate.now().plusDays(3))))
+                envioService.crear(1L, new EnvioRequest(LocalDate.now(), LocalDate.now().plusDays(3))))
                 .isInstanceOf(EcommerceException.class);
 
         verify(envioRepository, never()).save(any());
@@ -65,22 +63,21 @@ class EnvioServiceTest {
         when(envioRepository.findByPedidoId(1L)).thenReturn(Optional.of(envioExistente));
 
         assertThatThrownBy(() ->
-                envioService.crear(1L, new EnvioRequest(1L, LocalDate.now(), LocalDate.now().plusDays(3))))
+                envioService.crear(1L, new EnvioRequest(LocalDate.now(), LocalDate.now().plusDays(3))))
                 .isInstanceOf(ConflictoException.class);
     }
 
     @Test
     void crear_exitoso_guardaEnvio_actualizaPedidoYNotifica() {
-        Pedido pedido = Pedido.builder().id(1L).estadoPedido(EstadoPedido.PAGADO).build();
         Direccion direccion = Direccion.builder().id(1L).build();
+        Pedido pedido = Pedido.builder().id(1L).estadoPedido(EstadoPedido.PAGADO).direccionEnvio(direccion).build();
 
         when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
         when(envioRepository.findByPedidoId(1L)).thenReturn(Optional.empty());
-        when(direccionRepository.findById(1L)).thenReturn(Optional.of(direccion));
         when(envioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(envioMapper.toResponse(any())).thenReturn(null);
 
-        envioService.crear(1L, new EnvioRequest(1L, LocalDate.now(), LocalDate.now().plusDays(3)));
+        envioService.crear(1L, new EnvioRequest(LocalDate.now(), LocalDate.now().plusDays(3)));
 
         assertThat(pedido.getEstadoPedido()).isEqualTo(EstadoPedido.DESPACHADO);
         verify(pedidoRepository).save(pedido);

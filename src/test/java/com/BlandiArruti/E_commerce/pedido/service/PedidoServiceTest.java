@@ -209,7 +209,7 @@ class PedidoServiceTest {
         when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
         when(envioRepository.findByPedidoId(1L)).thenReturn(Optional.of(Envio.builder().build()));
 
-        var request = new EnvioRequest(1L, LocalDate.now(), LocalDate.now().plusDays(3));
+        var request = new EnvioRequest(LocalDate.now(), LocalDate.now().plusDays(3));
 
         assertThatThrownBy(() -> pedidoService.crearEnvio(1L, request))
                 .isInstanceOf(ConflictoException.class);
@@ -222,7 +222,7 @@ class PedidoServiceTest {
         autenticarComoAdmin();
         when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
 
-        var request = new EnvioRequest(1L, LocalDate.now(), LocalDate.now().plusDays(3));
+        var request = new EnvioRequest(LocalDate.now(), LocalDate.now().plusDays(3));
 
         assertThatThrownBy(() -> pedidoService.crearEnvio(1L, request))
                 .isInstanceOf(EcommerceException.class);
@@ -230,17 +230,17 @@ class PedidoServiceTest {
 
     @Test
     void crearEnvio_exitoso_enviaNotificacionYActualizaEstado() {
-        Pedido pedido = pedidoConEstado(EstadoPedido.PAGADO);
         Direccion direccion = Direccion.builder().id(1L).build();
+        Cliente cliente = Cliente.builder().id(1L).build();
+        Pedido pedido = Pedido.builder().id(1L).cliente(cliente).estadoPedido(EstadoPedido.PAGADO).direccionEnvio(direccion).build();
 
         autenticarComoAdmin();
         when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
         when(envioRepository.findByPedidoId(1L)).thenReturn(Optional.empty());
-        when(direccionRepository.findById(1L)).thenReturn(Optional.of(direccion));
         when(envioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(envioMapper.toResponse(any())).thenReturn(null);
 
-        pedidoService.crearEnvio(1L, new EnvioRequest(1L, LocalDate.now(), LocalDate.now().plusDays(3)));
+        pedidoService.crearEnvio(1L, new EnvioRequest(LocalDate.now(), LocalDate.now().plusDays(3)));
 
         assertThat(pedido.getEstadoPedido()).isEqualTo(EstadoPedido.DESPACHADO);
         verify(notificacionService).notificarEnvioActualizado(any());
